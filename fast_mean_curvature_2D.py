@@ -73,7 +73,7 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    # Example of use : python3 fast_curvature_2D.py -anat ./2D_data/anatomical_T1.png -in ./2D_data/wm.png
+    # Example of use : python3 fast_mean_curvature_2D.py -anat ./2D_data/anatomical_T1.png -in ./2D_data/wm.png
 
     output_path = args.output
 

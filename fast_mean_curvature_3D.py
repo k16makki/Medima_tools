@@ -90,7 +90,7 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    # Example of use : python3 fast_curvature_3D.py -in ./3D_data/stanford_bunny_binary.nii.gz
+    # Example of use : python3 fast_mean_curvature_3D.py -in ./3D_data/stanford_bunny_binary.nii.gz
 
     output_path = args.output
 
