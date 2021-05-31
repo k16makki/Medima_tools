@@ -164,7 +164,7 @@ if __name__ == '__main__':
     texture = Gaussian_curvature[verts[:,0].astype(int),verts[:,1].astype(int),verts[:,2].astype(int)]
     display_mesh(verts, faces, normals, texture, output_path + '/Gaussian_curature.png')
 
-# To compare results with the mean curvature based on the estimation of principal curvature and derivatives, please uncomment the following block
+# To compare results with the Gaussian curvature based on the estimation of principal curvature and derivatives on the explicit surface, please uncomment the following block
 
 '''
     # Comptue estimations of principal curvatures
