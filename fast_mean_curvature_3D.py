@@ -2,7 +2,7 @@
 
 """
   ©
-  Author(s): Karim Makki
+  Author: Karim Makki
 """
 
 import visvis as vv
@@ -126,7 +126,7 @@ if __name__ == '__main__':
     #print(np.min(texture),np.max(texture))
     display_mesh(verts, faces, normals, texture, output_path + '/mean_curature.png')
 
-# To compare results with the mean curvature based on the estimation of principal curvature and derivatives, please uncomment the following block
+# To compare results with the mean curvature based on the estimation of principal curvature for explicit surfaces, please uncomment the following block
 '''
     m = trimesh.load_mesh(output_path+'/surface_mesh.obj')
 

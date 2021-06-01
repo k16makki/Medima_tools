@@ -2,7 +2,7 @@
 
 """
   ©
-  Author(s): Karim Makki
+  Author: Karim Makki
 """
 
 import visvis as vv
@@ -21,20 +21,22 @@ import slam_curvature as scurv
 
 
 
-
 def hessian(phi):
 
     phi_grad = np.gradient(phi)
-    gaussian_filter(phi_grad[0], sigma=2, output=phi_grad[0])
-    gaussian_filter(phi_grad[1], sigma=2, output=phi_grad[1])
-    gaussian_filter(phi_grad[2], sigma=2, output=phi_grad[2])
+    gaussian_filter(phi_grad[0], sigma=1, output=phi_grad[0])
+    gaussian_filter(phi_grad[1], sigma=1, output=phi_grad[1])
+    gaussian_filter(phi_grad[2], sigma=1, output=phi_grad[2])
     hessian = np.empty((phi.ndim, phi.ndim) + phi.shape, dtype=phi.dtype)
     for k, grad_k in enumerate(phi_grad):
         # iterate over dimensions
         # apply gradient again to every component of the first derivative.
+        gaussian_filter(grad_k, sigma=1, output=grad_k)
         tmp_grad = np.gradient(grad_k)
         for l, grad_kl in enumerate(tmp_grad):
+            gaussian_filter(grad_kl, sigma=1, output=grad_kl)
             hessian[k, l, :, :] = grad_kl
+
     return phi_grad, hessian
 
 
@@ -56,24 +58,27 @@ def hessian_adjoint(hessian):
 
     return Ha
 
+
 def norm_grad(gx,gy,gz):
 
-    norm_grad =  np.sqrt(np.power(gx,2)+np.power(gy,2)+np.power(gz,2))
+    norm_grad =  np.sqrt(np.square(gx)+np.square(gy)+np.square(gz))
     norm_grad[np.where(norm_grad==0)]=1
 
     return  norm_grad
+
 
 def Gaussian_curvature(phi_grad,Ha):
 
     gx, gy, gz = phi_grad
 
-    gaussian_curv = gx * (gx*Ha[0,0,...]+gy*Ha[1,0,...]+gz*Ha[2,0,...]) + gy * (gx*Ha[0,1,...]+gy*Ha[1,1,...]+gz*Ha[2,1,...])\
+    gaussian_curv =  gx * (gx*Ha[0,0,...]+gy*Ha[1,0,...]+gz*Ha[2,0,...]) + gy * (gx*Ha[0,1,...]+gy*Ha[1,1,...]+gz*Ha[2,1,...])\
     + gz * (gx*Ha[0,2,...]+gy*Ha[1,2,...]+gz*Ha[2,2,...])
 
-    norm = norm_grad(gx,gy,gz)
-    np.divide(gaussian_curv,np.power(norm,4),gaussian_curv)
+    np.divide(gaussian_curv,np.power(norm_grad(gx,gy,gz),3),gaussian_curv)
+    gaussian_filter(gaussian_curv, sigma=2, output=gaussian_curv)
 
     return gaussian_curv
+
 
 def bbox_3D(mask,depth):
 
@@ -94,6 +99,7 @@ def phi(mask):
     phi_int = skfmm.distance(mask)
 
     return  phi_ext - phi_int
+
 
 ## signed Euclidean distance
 def phi_Euclidean(mask):
@@ -126,13 +132,12 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    # Example of use : python3 fast_Gaussian_curvature_3D.py -in ./data/stanford_bunny_binary.nii.gz
+    # Example of use : python3 fast_Gaussian_curvature_3D.py -in ./3D_data/stanford_bunny_binary.nii.gz
 
     output_path = args.output
 
     if not os.path.exists(output_path):
         os.makedirs(output_path)
-
 
     shape = nib.load(args.mask).get_data()
 
@@ -164,7 +169,7 @@ if __name__ == '__main__':
     texture = Gaussian_curvature[verts[:,0].astype(int),verts[:,1].astype(int),verts[:,2].astype(int)]
     display_mesh(verts, faces, normals, texture, output_path + '/Gaussian_curature.png')
 
-# To compare results with the Gaussian curvature based on the estimation of principal curvature and derivatives on the explicit surface, please uncomment the following block
+# To compare results with the mean curvature based on the estimation of principal curvature on explicit surfaces, please uncomment the following block
 
 '''
     # Comptue estimations of principal curvatures
@@ -173,6 +178,7 @@ if __name__ == '__main__':
 
     start_time = timeit.default_timer()
     PrincipalCurvatures, PrincipalDir1, PrincipalDir2 = scurv.curvatures_and_derivatives(m)
+
 
 ###############################################################################
 # Comptue Gaussian curvature from principal curvatures

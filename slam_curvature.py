@@ -1,4 +1,4 @@
-#This code is available at Github (original and current version): https://github.com/brain-slam/slam
+#This code is available at Github (original version, owned by INT Marseille): https://github.com/brain-slam/slam
 
 import numpy as np
 from trimesh import util as tut
