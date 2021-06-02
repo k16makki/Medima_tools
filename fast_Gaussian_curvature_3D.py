@@ -24,17 +24,12 @@ import slam_curvature as scurv
 def hessian(phi):
 
     phi_grad = np.gradient(phi)
-    gaussian_filter(phi_grad[0], sigma=1, output=phi_grad[0])
-    gaussian_filter(phi_grad[1], sigma=1, output=phi_grad[1])
-    gaussian_filter(phi_grad[2], sigma=1, output=phi_grad[2])
     hessian = np.empty((phi.ndim, phi.ndim) + phi.shape, dtype=phi.dtype)
     for k, grad_k in enumerate(phi_grad):
         # iterate over dimensions
         # apply gradient again to every component of the first derivative.
-        gaussian_filter(grad_k, sigma=1, output=grad_k)
         tmp_grad = np.gradient(grad_k)
         for l, grad_kl in enumerate(tmp_grad):
-            gaussian_filter(grad_kl, sigma=1, output=grad_kl)
             hessian[k, l, :, :] = grad_kl
 
     return phi_grad, hessian
@@ -74,7 +69,7 @@ def Gaussian_curvature(phi_grad,Ha):
     gaussian_curv =  gx * (gx*Ha[0,0,...]+gy*Ha[1,0,...]+gz*Ha[2,0,...]) + gy * (gx*Ha[0,1,...]+gy*Ha[1,1,...]+gz*Ha[2,1,...])\
     + gz * (gx*Ha[0,2,...]+gy*Ha[1,2,...]+gz*Ha[2,2,...])
 
-    np.divide(gaussian_curv,np.power(norm_grad(gx,gy,gz),3),gaussian_curv)
+    np.divide(gaussian_curv,np.power(norm_grad(gx,gy,gz),3),gaussian_curv) 
     gaussian_filter(gaussian_curv, sigma=2, output=gaussian_curv)
 
     return gaussian_curv
