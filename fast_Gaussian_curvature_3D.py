@@ -54,10 +54,29 @@ def hessian_adjoint(hessian):
     return Ha
 
 
-def norm_grad(gx,gy,gz):
+def L2_norm_grad(gx,gy,gz):
 
     norm_grad =  np.sqrt(np.square(gx)+np.square(gy)+np.square(gz))
-    norm_grad[np.where(norm_grad==0)]=1
+    gaussian_filter(norm_grad, sigma=1, output=norm_grad)
+    norm_grad[np.where(norm_grad==0)]=1 # just to avoid dividing by zero
+
+    return  norm_grad
+
+
+def norm_grad_Taxicab(gx,gy,gz):
+
+    norm_grad =  np.absolute(gx)+np.absolute(gy)+np.absolute(gz)
+    gaussian_filter(norm_grad, sigma=1, output=norm_grad)
+    norm_grad[np.where(norm_grad==0)]= 1
+
+    return  norm_grad
+
+
+def L_infinity_norm_grad(gx,gy,gz):
+
+    norm_grad =  np.maximum(np.maximum(np.absolute(gx),np.absolute(gy)), np.absolute(gz))
+    gaussian_filter(norm_grad, sigma=1, output=norm_grad)
+    norm_grad[np.where(norm_grad==0)]= 1
 
     return  norm_grad
 
@@ -69,8 +88,8 @@ def Gaussian_curvature(phi_grad,Ha):
     gaussian_curv =  gx * (gx*Ha[0,0,...]+gy*Ha[1,0,...]+gz*Ha[2,0,...]) + gy * (gx*Ha[0,1,...]+gy*Ha[1,1,...]+gz*Ha[2,1,...])\
     + gz * (gx*Ha[0,2,...]+gy*Ha[1,2,...]+gz*Ha[2,2,...])
 
-    np.divide(gaussian_curv,np.power(norm_grad(gx,gy,gz),3),gaussian_curv) 
-    gaussian_filter(gaussian_curv, sigma=2, output=gaussian_curv)
+    np.divide(gaussian_curv,np.power(L2_norm_grad(gx,gy,gz),4),gaussian_curv)
+    gaussian_filter(gaussian_curv, sigma=1, output=gaussian_curv)
 
     return gaussian_curv
 
@@ -111,8 +130,11 @@ def display_mesh(verts, faces, normals, texture, save_path):
     mesh = vv.mesh(verts, faces, normals, texture, verticesPerFace=3)
     f = vv.gca()
     mesh.colormap = vv.CM_JET
+    #mesh.edgeShading = 'smooth'
+    #mesh.clim = np.min(texture),np.max(texture)
     vv.callLater(1.0, vv.screenshot, save_path, vv.gcf(), sf=2)
     vv.colorbar()
+    #vv.view({'azimuth': 45.0, 'elevation': 45.0})
     f.axis.visible = False
     vv.use().Run()
 
@@ -155,25 +177,27 @@ if __name__ == '__main__':
     print("The proposed method takes:\n")
     print(elapsed)
 
-    verts, faces, normals, values = measure.marching_cubes_lewiner(phi, 0.0) # surface mesh
+    # extract implicit surface mesh using the scikit-image toolbox
+
+    verts, faces, normals, values = measure.marching_cubes_lewiner(phi, 0.0)
     print(verts.shape)
+
     m = trimesh.Trimesh(vertices=verts, faces=faces)
-    #m.export(output_path+'/surface_mesh.ply')
-    m.export(output_path+'/surface_mesh.obj')
+
+    m.export(os.path.join(output_path, "surface_mesh.obj"))
 
     texture = Gaussian_curvature[verts[:,0].astype(int),verts[:,1].astype(int),verts[:,2].astype(int)]
-    display_mesh(verts, faces, normals, texture, output_path + '/Gaussian_curature.png')
+    display_mesh(verts, faces, normals, texture, os.path.join(output_path, "Gaussian_curature.png"))
 
-# To compare results with the mean curvature based on the estimation of principal curvature on explicit surfaces, please uncomment the following block
+# To compare results with the Gaussian curvature based on the estimation of principal curvature for explicit surfaces, please uncomment the following block
 
 '''
     # Comptue estimations of principal curvatures
 
-    m = trimesh.load_mesh(output_path+'/surface_mesh.obj')
+    m = trimesh.load_mesh(os.path.join(output_path, "surface_mesh.obj"))
 
     start_time = timeit.default_timer()
     PrincipalCurvatures, PrincipalDir1, PrincipalDir2 = scurv.curvatures_and_derivatives(m)
-
 
 ###############################################################################
 # Comptue Gaussian curvature from principal curvatures
@@ -184,5 +208,5 @@ if __name__ == '__main__':
     print("The Rusinkiewicz method takes:\n")
     print(elapsed)
 
-    display_mesh(m.vertices, m.faces, m.vertex_normals, gaussian_curv, output_path + '/Gaussian_curature_Rusinkiewicz.png')
+    display_mesh(m.vertices, m.faces, m.vertex_normals, gaussian_curv, os.path.join(output_path, "Gaussian_curature_Rusinkiewicz.png"))
 '''

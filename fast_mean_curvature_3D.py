@@ -120,15 +120,16 @@ if __name__ == '__main__':
     print(verts.shape)
     m = trimesh.Trimesh(vertices=verts, faces=faces)
     #m.export(output_path+'/surface_mesh.ply')
-    m.export(output_path+'/surface_mesh.obj')
+    m.export(os.path.join(output_path, "surface_mesh.obj"))
+
 
     texture = curvature[verts[:,0].astype(int),verts[:,1].astype(int),verts[:,2].astype(int)]
     #print(np.min(texture),np.max(texture))
-    display_mesh(verts, faces, normals, texture, output_path + '/mean_curature.png')
+    display_mesh(verts, faces, normals, texture, os.path.join(output_path, "mean_curature.png"))
 
 # To compare results with the mean curvature based on the estimation of principal curvature for explicit surfaces, please uncomment the following block
 '''
-    m = trimesh.load_mesh(output_path+'/surface_mesh.obj')
+    m = trimesh.load_mesh(os.path.join(output_path, "surface_mesh.obj"))
 
     start_time = timeit.default_timer()
 
@@ -144,5 +145,5 @@ if __name__ == '__main__':
     print("The Rusinkiewicz method takes:\n")
     print(elapsed)
 
-    display_mesh(m.vertices, m.faces, m.vertex_normals, mean_curv, output_path + '/mean_curature_Rusinkiewicz.png')
+    display_mesh(m.vertices, m.faces, m.vertex_normals, mean_curv, os.path.join(output_path, "mean_curature_Rusinkiewicz.png"))
 '''
