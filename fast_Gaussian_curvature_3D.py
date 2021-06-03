@@ -17,7 +17,11 @@ import  skfmm
 from skimage import measure
 import timeit
 
+## Import tools for computing curvature on explicit surfaces (for comparison purposes)
 import slam_curvature as scurv
+import CurvatureCubic as ccurv
+import CurvatureWpF as WpFcurv
+
 
 
 
@@ -174,7 +178,7 @@ if __name__ == '__main__':
 ############################################################################
 
     elapsed = timeit.default_timer() - start_time
-    print("The proposed method takes:\n")
+    print("The proposed method takes (in seconds):\n")
     print(elapsed)
 
     # extract implicit surface mesh using the scikit-image toolbox
@@ -187,26 +191,66 @@ if __name__ == '__main__':
     m.export(os.path.join(output_path, "surface_mesh.obj"))
 
     texture = Gaussian_curvature[verts[:,0].astype(int),verts[:,1].astype(int),verts[:,2].astype(int)]
-    display_mesh(verts, faces, normals, texture, os.path.join(output_path, "Gaussian_curature.png"))
+    display_mesh(verts, faces, normals, texture, os.path.join(output_path, "Gaussian_curature_Makki.png"))
 
-# To compare results with the Gaussian curvature based on the estimation of principal curvature for explicit surfaces, please uncomment the following block
+####To compare results with other methods defining the surface explicitly, please comment/uncomment the following blocks ###############
 
-'''
-    # Comptue estimations of principal curvatures
+# #######################################################################################################################################
+# ##### To compare results with the Rusinkiewicz (v1) Gaussian curvature, please uncomment the following block ##########################
+#
+#     m = trimesh.load_mesh(os.path.join(output_path, "surface_mesh.obj"))
+#
+#     start_time = timeit.default_timer()
+#     # Comptue estimations of principal curvatures
+#     PrincipalCurvatures, PrincipalDir1, PrincipalDir2 = scurv.curvatures_and_derivatives(m)
+#     gaussian_curv = PrincipalCurvatures[0, :] * PrincipalCurvatures[1, :]
+#
+#     elapsed = timeit.default_timer() - start_time
+#
+#     print("The Rusinkiewicz method v1 takes (in seconds):\n")
+#     print(elapsed)
+#
+#     #gaussian_filter(gaussian_curv, sigma=1, output=gaussian_curv)
+#     display_mesh(m.vertices, m.faces, m.vertex_normals, gaussian_curv, os.path.join(output_path, "Gaussian_curvature_Rusinkiewicz_v1.png"))
+# #########################################################################################################################################
+
+
+#########################################################################################################################################
+##### To compare results with the Rusinkiewicz (v2) Gaussian curvature, please uncomment the following block ############################
+########################### Note that the second version is quite  faster than the first ################################################
 
     m = trimesh.load_mesh(os.path.join(output_path, "surface_mesh.obj"))
 
     start_time = timeit.default_timer()
-    PrincipalCurvatures, PrincipalDir1, PrincipalDir2 = scurv.curvatures_and_derivatives(m)
 
-###############################################################################
-# Comptue Gaussian curvature from principal curvatures
-    gaussian_curv = PrincipalCurvatures[0, :] * PrincipalCurvatures[1, :]
+    #K,H,VN = WpFcurv.GetCurvatures(m.vertices,m.faces)
+    gaussian_curv = WpFcurv.GetCurvatures(m.vertices,m.faces)[0]
 
     elapsed = timeit.default_timer() - start_time
 
-    print("The Rusinkiewicz method takes:\n")
+    print("The Rusinkiewicz method v2 takes (in seconds):\n")
     print(elapsed)
 
-    display_mesh(m.vertices, m.faces, m.vertex_normals, gaussian_curv, os.path.join(output_path, "Gaussian_curature_Rusinkiewicz.png"))
-'''
+    #gaussian_filter(gaussian_curv, sigma=1, output=gaussian_curv)
+    display_mesh(m.vertices, m.faces, m.vertex_normals, gaussian_curv, os.path.join(output_path, "Gaussian_curvature_Rusinkiewicz_v2.png"))
+##########################################################################################################################################
+
+
+# #########################################################################################################################################
+# ##### To compare results with those of the cubic order algorithm, please uncomment the following block ##################################
+#
+#     m = trimesh.load_mesh(os.path.join(output_path, "surface_mesh.obj"))
+#
+#     start_time = timeit.default_timer()
+#
+#     #K,H,VN = ccurv.CurvatureCubic(m.vertices,m.faces)
+#     gaussian_curv = ccurv.CurvatureCubic(m.vertices,m.faces)[0]
+#
+#     elapsed = timeit.default_timer() - start_time
+#
+#     print("The cubic order algorithm takes (in seconds):\n")
+#     print(elapsed)
+#
+#     #gaussian_filter(gaussian_curv, sigma=1, output=gaussian_curv)
+#     display_mesh(m.vertices, m.faces, m.vertex_normals, gaussian_curv, os.path.join(output_path, "Gaussian_curvature_cubic_order.png"))
+# ##########################################################################################################################################
