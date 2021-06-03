@@ -90,6 +90,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-in', '--mask', help='3D shape binary mask, as NIFTI file', type=str, required = True)
     parser.add_argument('-o', '--output', help='output directory', type=str, default = './curvature_results')
+    parser.add_argument('-dmap', '--dmap', help='distance_map: 0 if Euclidean, and 1 if geodesic distance map', type=int, default = 0)
 
     args = parser.parse_args()
 
@@ -107,7 +108,13 @@ if __name__ == '__main__':
 
     shape = bbox_3D(shape,5)
 
-    phi = phi(shape) ## geodesic signed distance
+    if (args.dmap == 1):
+
+        phi = phi(shape) ## signed geodesic distance
+
+    else:
+
+        phi = phi_Euclidean(shape) ## signed Euclidean distance
 
     gaussian_filter(phi, sigma=2, output=phi) ## smoothing of the level set signed distance function
 

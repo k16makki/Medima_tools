@@ -39,7 +39,9 @@ def hessian(phi):
     return phi_grad, hessian
 
 
-#### Compute the adjoint of the Hessian matrix
+#### Compute the adjoint of the Hessian matrix (faster than the numy version below)
+#### Reference: Ron Goldman, Curvature formulas for implicit curves and surfaces, Computer Aided Geometric Design 22 (2005) 632–658
+
 def hessian_adjoint(hessian):
 
     Ha = np.zeros(hessian.shape)
@@ -57,6 +59,23 @@ def hessian_adjoint(hessian):
 
     return Ha
 
+#### Compute the adjoint of the Hessian matrix
+def hessian_adjoint_numpy(hessian):
+
+    Ha = np.zeros(hessian.shape)
+    Ha[0,0,...] = np.subtract(np.multiply(hessian[1,1,...],hessian[2,2,...]) , np.multiply(hessian[1,2,...],hessian[2,1,...]))
+    Ha[0,1,...] = np.subtract(np.multiply(hessian[1,2,...],hessian[2,0,...]) , np.multiply(hessian[1,0,...],hessian[2,2,...]))
+    Ha[0,2,...] = np.subtract(np.multiply(hessian[1,0,...],hessian[2,1,...]) , np.multiply(hessian[1,1,...],hessian[2,0,...]))
+
+    Ha[1,0,...] = np.subtract(np.multiply(hessian[0,2,...],hessian[2,1,...]) , np.multiply(hessian[0,1,...],hessian[2,2,...]))
+    Ha[1,1,...] = np.subtract(np.multiply(hessian[0,0,...],hessian[2,2,...]) , np.multiply(hessian[0,2,...],hessian[2,0,...]))
+    Ha[1,2,...] = np.subtract(np.multiply(hessian[0,1,...],hessian[2,0,...]) , np.multiply(hessian[0,0,...],hessian[2,1,...]))
+
+    Ha[2,0,...] = np.subtract(np.multiply(hessian[0,1,...],hessian[1,2,...]) , np.multiply(hessian[0,2,...],hessian[1,1,...]))
+    Ha[2,1,...] = np.subtract(np.multiply(hessian[1,0,...],hessian[0,2,...]) , np.multiply(hessian[0,0,...],hessian[1,2,...]))
+    Ha[2,2,...] = np.subtract(np.multiply(hessian[0,0,...],hessian[1,1,...]) , np.multiply(hessian[0,1,...],hessian[1,0,...]))
+
+    return Ha
 
 def L2_norm_grad(gx,gy,gz):
 
@@ -110,7 +129,7 @@ def bbox_3D(mask,depth):
     return mask[xmin-depth:xmax+depth,ymin-depth:ymax+depth,zmin-depth:zmax+depth]
 
 
-## signed geodesic distance
+## signed geodesic distance function for the implicit surface
 def phi(mask):
 
     phi_ext = skfmm.distance(np.max(mask)-mask)
@@ -131,7 +150,7 @@ def phi_Euclidean(mask):
 
 def display_mesh(verts, faces, normals, texture, save_path):
 
-    mesh = vv.mesh(verts, faces, normals, texture, verticesPerFace=3)
+    mesh = vv.mesh(verts, faces, normals, texture)#, verticesPerFace=3)
     f = vv.gca()
     mesh.colormap = vv.CM_JET
     #mesh.edgeShading = 'smooth'
@@ -150,6 +169,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-in', '--mask', help='3D shape binary mask, as NIFTI file', type=str, required = True)
     parser.add_argument('-o', '--output', help='output directory', type=str, default = './Gaussian_curvature_results')
+    parser.add_argument('-dmap', '--dmap', help='distance_map: 0 if Euclidean, and 1 if geodesic distance map', type=int, default = 0)
 
     args = parser.parse_args()
 
@@ -166,7 +186,13 @@ if __name__ == '__main__':
 
     shape = bbox_3D(shape,5)
 
-    phi = phi(shape) ## geodesic signed distance
+    if (args.dmap == 1):
+
+        phi = phi(shape) ## signed geodesic distance
+
+    else:
+
+        phi = phi_Euclidean(shape) ## signed Euclidean distance
 
     gaussian_filter(phi, sigma=2, output=phi) ## smoothing of the level set signed distance function
 
@@ -181,7 +207,7 @@ if __name__ == '__main__':
     print("The proposed method takes (in seconds):\n")
     print(elapsed)
 
-    # extract implicit surface mesh using the scikit-image toolbox
+    # extract explicitly the implicit surface mesh using the scikit-image toolbox
 
     verts, faces, normals, values = measure.marching_cubes_lewiner(phi, 0.0)
     print(verts.shape)
