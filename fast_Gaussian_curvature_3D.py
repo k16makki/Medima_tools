@@ -39,7 +39,7 @@ def hessian(phi):
     return phi_grad, hessian
 
 
-#### Compute the adjoint of the Hessian matrix (faster than the numy version below)
+#### Compute the adjoint of the Hessian matrix (faster than the numpy version defined below)
 #### Reference: Ron Goldman, Curvature formulas for implicit curves and surfaces, Computer Aided Geometric Design 22 (2005) 632–658
 
 def hessian_adjoint(hessian):
@@ -146,6 +146,14 @@ def phi_Euclidean(mask):
 
     return phi_ext - phi_int
 
+## Binary step function, equivalent to the signed distance funcion, as it satisfies |\nabla \phi | = 1, at least in a vincinity
+## of the zero level set
+def phi_binary(mask):
+
+    phi_bin = np.ones(mask.shape)
+    phi_bin[np.where(mask != 0)] = -1
+
+    return  phi_bin
 
 
 def display_mesh(verts, faces, normals, texture, save_path):
@@ -169,7 +177,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-in', '--mask', help='3D shape binary mask, as NIFTI file', type=str, required = True)
     parser.add_argument('-o', '--output', help='output directory', type=str, default = './Gaussian_curvature_results')
-    parser.add_argument('-dmap', '--dmap', help='distance_map: 0 if Euclidean, and 1 if geodesic distance map', type=int, default = 0)
+    parser.add_argument('-dmap', '--dmap', help='distance_map: 0 if Euclidean, 1 if geodesic distance map, and 2 if binary step function', type=int, default = 0)
 
     args = parser.parse_args()
 
@@ -190,9 +198,14 @@ if __name__ == '__main__':
 
         phi = phi(shape) ## signed geodesic distance
 
+    elif (args.dmap == 2):
+
+        phi = phi_binary(shape) ## binary step function
+
     else:
 
         phi = phi_Euclidean(shape) ## signed Euclidean distance
+
 
     gaussian_filter(phi, sigma=2, output=phi) ## smoothing of the level set signed distance function
 
@@ -209,7 +222,12 @@ if __name__ == '__main__':
 
     # extract explicitly the implicit surface mesh using the scikit-image toolbox
 
-    verts, faces, normals, values = measure.marching_cubes_lewiner(phi, 0.0)
+    #hdr = nib.load(args.mask).header
+    #dx = hdr.get_zooms()[0] #x-voxel spacing
+    #dy = hdr.get_zooms()[1] #y-voxel spacing
+    #dz = hdr.get_zooms()[2] #z-voxel spacing
+
+    verts, faces, normals, values = measure.marching_cubes_lewiner(phi, 0.0)#, spacing=(dx,dy,dz), gradient_direction='descent')
     print(verts.shape)
 
     m = trimesh.Trimesh(vertices=verts, faces=faces)

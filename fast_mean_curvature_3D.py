@@ -52,6 +52,14 @@ def phi_Euclidean(mask):
 
     return phi_ext - phi_int
 
+## Binary step function, equivalent to the signed distance funcion, as it satisfies |\nabla \phi | = 1, at least in a vincinity
+## of the zero level set
+def phi_binary(mask):
+
+    phi_bin = np.ones(mask.shape)
+    phi_bin[np.where(mask != 0)] = -1
+
+    return  phi_bin
 
 
 def curvature(phi):
@@ -90,7 +98,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-in', '--mask', help='3D shape binary mask, as NIFTI file', type=str, required = True)
     parser.add_argument('-o', '--output', help='output directory', type=str, default = './curvature_results')
-    parser.add_argument('-dmap', '--dmap', help='distance_map: 0 if Euclidean, and 1 if geodesic distance map', type=int, default = 0)
+    parser.add_argument('-dmap', '--dmap', help='distance_map: 0 if Euclidean, 1 if geodesic distance map, and 2 if binary step function', type=int, default = 0)
 
     args = parser.parse_args()
 
@@ -112,6 +120,10 @@ if __name__ == '__main__':
 
         phi = phi(shape) ## signed geodesic distance
 
+    elif (args.dmap == 2):
+
+        phi = phi_binary(shape) ## binary step function
+
     else:
 
         phi = phi_Euclidean(shape) ## signed Euclidean distance
@@ -125,8 +137,10 @@ if __name__ == '__main__':
     print("The proposed method takes:\n")
     print(elapsed)
 
+    # extract explicitly the implicit surface mesh using the scikit-image toolbox
 
-    verts, faces, normals, values = measure.marching_cubes_lewiner(phi, 0.0) # surface mesh
+    verts, faces, normals, values = measure.marching_cubes_lewiner(phi, 0.0, gradient_direction='descent')
+
     print(verts.shape)
     m = trimesh.Trimesh(vertices=verts, faces=faces)
     #m.export(output_path+'/surface_mesh.ply')
