@@ -21,6 +21,7 @@ import timeit
 import slam_curvature as scurv
 import CurvatureCubic as ccurv
 import CurvatureWpF as WpFcurv
+import CurvatureISF as ISFcurv
 
 
 
@@ -85,24 +86,30 @@ def curvature(phi):
 
 def display_mesh(verts, faces, normals, texture, save_path):
 
-    mesh = vv.mesh(verts, faces, normals, texture, verticesPerFace=3)
+    mesh = vv.mesh(verts, faces, normals, texture)#, verticesPerFace=3)
     f = vv.gca()
     mesh.colormap = vv.CM_JET
+    mesh.edgeShading = 'smooth'
+    #mesh.clim = np.min(texture),np.max(texture)
+    #mesh.clim = -0.2, 0.2
     vv.callLater(1.0, vv.screenshot, save_path, vv.gcf(), sf=2)
     vv.colorbar()
+    #vv.view({'azimuth': 45.0, 'elevation': 45.0})
     f.axis.visible = False
     vv.use().Run()
+
+    return 0
 
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
     parser.add_argument('-in', '--mask', help='3D shape binary mask, as NIFTI file', type=str, required = True)
     parser.add_argument('-o', '--output', help='output directory', type=str, default = './curvature_results')
-    parser.add_argument('-dmap', '--dmap', help='distance_map: 0 if Euclidean, 1 if geodesic distance map, and 2 if binary step function', type=int, default = 0)
+    parser.add_argument('-dmap', '--dmap', help='distance_map: 0 if Euclidean, 1 if geodesic distance map, and 2 if binary step function', type=int, default = 1)
 
     args = parser.parse_args()
 
-    # Example of use : python3 fast_mean_curvature_3D.py -in ./3D_data/stanford_bunny_binary.nii.gz
+    # Example of use : python3 fast_mean_curvature_3D.py -in ./3D_data/stanford_bunny_binary.nii.gz -dmap 0
 
     output_path = args.output
 
@@ -139,7 +146,7 @@ if __name__ == '__main__':
 
     # extract explicitly the implicit surface mesh using the scikit-image toolbox
 
-    verts, faces, normals, values = measure.marching_cubes_lewiner(phi, 0.0, gradient_direction='descent')
+    verts, faces, normals, values = measure.marching_cubes_lewiner(phi, 0.0)#, gradient_direction='descent')
 
     print(verts.shape)
     m = trimesh.Trimesh(vertices=verts, faces=faces)
@@ -189,7 +196,7 @@ if __name__ == '__main__':
     print("The Rusinkiewicz method v2 takes (in seconds):\n")
     print(elapsed)
 
-    #gaussian_filter(gaussian_curv, sigma=1, output=gaussian_curv)
+    #gaussian_filter(mean_curv, sigma=1, output=gaussian_curv)
     display_mesh(m.vertices, m.faces, m.vertex_normals, mean_curv, os.path.join(output_path, "mean_curvature_Rusinkiewicz_v2.png"))
 ##########################################################################################################################################
 
@@ -211,4 +218,21 @@ if __name__ == '__main__':
 #
 #     #gaussian_filter(mean_curv, sigma=1, output=mean_curv)
 #     display_mesh(m.vertices, m.faces, m.vertex_normals, mean_curv, os.path.join(output_path, "mean_curvature_cubic_order.png"))
+# ##########################################################################################################################################
+
+# #########################################################################################################################################
+# ##### To compare results with the iterative fitting method, please uncomment the following block ########################################
+#
+#     m = trimesh.load_mesh(os.path.join(output_path, "surface_mesh.obj"))
+#
+#     start_time = timeit.default_timer()
+#
+#     mean_curv = ISFcurv.CurvatureISF2(m.vertices,m.faces)[1]
+#
+#     elapsed = timeit.default_timer() - start_time
+#
+#     print("The iterative fitting method takes (in seconds):\n")
+#     print(elapsed)
+#
+#     display_mesh(m.vertices, m.faces, m.vertex_normals, mean_curv, os.path.join(output_path, "mean_curvature_iterative_fitting.png"))
 # ##########################################################################################################################################

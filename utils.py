@@ -15,6 +15,8 @@ import numpy as np
 #
 #  This software is provided by the copyright holders and contributors "as is" and any express or implied warranties, including, but not limited to, the implied warranties of merchantability and fitness for a particular purpose are disclaimed. In no event shall the copyright owner or contributors be liable for any direct, indirect, incidental, special, exemplary, or consequential damages (including, but not limited to, procurement of substitute goods or services; loss of use, data, or profits; or business interruption) however caused and on any theory of liability, whether in contract, strict liability, or tort (including negligence or otherwise) arising in any way out of the use of this software, even if advised of the possibility of such damage.
 
+epsilon = 2.220446049250313e-16
+
 def triangle_neighbors(tris, npts):
     """Efficiently compute vertex neighboring triangles.
     Returns the triangles in the 1-ring of a given vertex
@@ -68,10 +70,12 @@ def GetVertexNormals(vertices,faces,FaceNormals,e0,e1,e2):
 
     L2=np.c_[de0**2,de1**2,de2**2]
 
+
+
     #Calculate weights according to N.Max [1999] for normals
-    wfv1=FaceNormals/(L2[:,1]*L2[:,2])[:,np.newaxis]
-    wfv2=FaceNormals/(L2[:,2]*L2[:,0])[:,np.newaxis]
-    wfv3=FaceNormals/(L2[:,0]*L2[:,1])[:,np.newaxis]
+    wfv1=FaceNormals/((L2[:,1]*L2[:,2])[:,np.newaxis]+epsilon)
+    wfv2=FaceNormals/((L2[:,2]*L2[:,0])[:,np.newaxis]+epsilon)
+    wfv3=FaceNormals/((L2[:,0]*L2[:,1])[:,np.newaxis]+epsilon)
 
 #    #Calculate the weights according to MWA for normals
 #    wfv1=FaceNormals*np.arcsin(2*Af/(de1*de2))[:,np.newaxis]
@@ -113,4 +117,4 @@ def normr(vec):
     """
     Normalizes an array of vectors. e.g. to convert a np array of vectors to unit vectors
     """
-    return vec/np.sqrt((vec**2).sum(axis=1))[:,np.newaxis]
+    return vec/ (np.sqrt((vec**2).sum(axis=1))[:,np.newaxis]+ epsilon)

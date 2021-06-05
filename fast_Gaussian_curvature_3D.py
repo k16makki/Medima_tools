@@ -21,6 +21,7 @@ import timeit
 import slam_curvature as scurv
 import CurvatureCubic as ccurv
 import CurvatureWpF as WpFcurv
+import CurvatureISF as ISFcurv
 
 
 
@@ -110,8 +111,8 @@ def Gaussian_curvature(phi_grad,Ha):
 
     gaussian_curv =  gx * (gx*Ha[0,0,...]+gy*Ha[1,0,...]+gz*Ha[2,0,...]) + gy * (gx*Ha[0,1,...]+gy*Ha[1,1,...]+gz*Ha[2,1,...])\
     + gz * (gx*Ha[0,2,...]+gy*Ha[1,2,...]+gz*Ha[2,2,...])
-
-    np.divide(gaussian_curv,np.power(L2_norm_grad(gx,gy,gz),4),gaussian_curv)
+    #np.divide(gaussian_curv,np.power(L2_norm_grad(gx,gy,gz),4),gaussian_curv)
+    np.divide(gaussian_curv,L2_norm_grad(gx,gy,gz)**4,gaussian_curv)
     gaussian_filter(gaussian_curv, sigma=1, output=gaussian_curv)
 
     return gaussian_curv
@@ -163,6 +164,7 @@ def display_mesh(verts, faces, normals, texture, save_path):
     mesh.colormap = vv.CM_JET
     #mesh.edgeShading = 'smooth'
     #mesh.clim = np.min(texture),np.max(texture)
+    mesh.clim = -0.05, 0.02
     vv.callLater(1.0, vv.screenshot, save_path, vv.gcf(), sf=2)
     vv.colorbar()
     #vv.view({'azimuth': 45.0, 'elevation': 45.0})
@@ -177,7 +179,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-in', '--mask', help='3D shape binary mask, as NIFTI file', type=str, required = True)
     parser.add_argument('-o', '--output', help='output directory', type=str, default = './Gaussian_curvature_results')
-    parser.add_argument('-dmap', '--dmap', help='distance_map: 0 if Euclidean, 1 if geodesic distance map, and 2 if binary step function', type=int, default = 0)
+    parser.add_argument('-dmap', '--dmap', help='distance_map: 0 if Euclidean, 1 if geodesic distance map, and 2 if binary step function', type=int, default = 1)
 
     args = parser.parse_args()
 
@@ -237,7 +239,7 @@ if __name__ == '__main__':
     texture = Gaussian_curvature[verts[:,0].astype(int),verts[:,1].astype(int),verts[:,2].astype(int)]
     display_mesh(verts, faces, normals, texture, os.path.join(output_path, "Gaussian_curature_Makki.png"))
 
-####To compare results with other methods defining the surface explicitly, please comment/uncomment the following blocks ###############
+###To compare results with other methods defining the surface explicitly, please comment/uncomment the following blocks ###############
 
 # #######################################################################################################################################
 # ##### To compare results with the Rusinkiewicz (v1) Gaussian curvature, please uncomment the following block ##########################
@@ -259,25 +261,25 @@ if __name__ == '__main__':
 # #########################################################################################################################################
 
 
-#########################################################################################################################################
-##### To compare results with the Rusinkiewicz (v2) Gaussian curvature, please uncomment the following block ############################
-########################### Note that the second version is quite  faster than the first ################################################
-
-    m = trimesh.load_mesh(os.path.join(output_path, "surface_mesh.obj"))
-
-    start_time = timeit.default_timer()
-
-    #K,H,VN = WpFcurv.GetCurvatures(m.vertices,m.faces)
-    gaussian_curv = WpFcurv.GetCurvatures(m.vertices,m.faces)[0]
-
-    elapsed = timeit.default_timer() - start_time
-
-    print("The Rusinkiewicz method v2 takes (in seconds):\n")
-    print(elapsed)
-
-    #gaussian_filter(gaussian_curv, sigma=1, output=gaussian_curv)
-    display_mesh(m.vertices, m.faces, m.vertex_normals, gaussian_curv, os.path.join(output_path, "Gaussian_curvature_Rusinkiewicz_v2.png"))
-##########################################################################################################################################
+# #########################################################################################################################################
+# ##### To compare results with the Rusinkiewicz (v2) Gaussian curvature, please uncomment the following block ############################
+# ########################### Note that the second version is quite  faster than the first ################################################
+#
+#     m = trimesh.load_mesh(os.path.join(output_path, "surface_mesh.obj"))
+#
+#     start_time = timeit.default_timer()
+#
+#     #K,H,VN = WpFcurv.GetCurvatures(m.vertices,m.faces)
+#     gaussian_curv = WpFcurv.GetCurvatures(m.vertices,m.faces)[0]
+#
+#     elapsed = timeit.default_timer() - start_time
+#
+#     print("The Rusinkiewicz method v2 takes (in seconds):\n")
+#     print(elapsed)
+#
+#     #gaussian_filter(gaussian_curv, sigma=1, output=gaussian_curv)
+#     display_mesh(m.vertices, m.faces, m.vertex_normals, gaussian_curv, os.path.join(output_path, "Gaussian_curvature_Rusinkiewicz_v2.png"))
+# ##########################################################################################################################################
 
 
 # #########################################################################################################################################
@@ -298,3 +300,22 @@ if __name__ == '__main__':
 #     #gaussian_filter(gaussian_curv, sigma=1, output=gaussian_curv)
 #     display_mesh(m.vertices, m.faces, m.vertex_normals, gaussian_curv, os.path.join(output_path, "Gaussian_curvature_cubic_order.png"))
 # ##########################################################################################################################################
+
+#########################################################################################################################################
+##### To compare results with the iterative fitting method, please uncomment the following block ########################################
+
+    m = trimesh.load_mesh(os.path.join(output_path, "surface_mesh.obj"))
+
+    start_time = timeit.default_timer()
+
+    gaussian_curv = ISFcurv.CurvatureISF2(m.vertices,m.faces)[0]
+    #gaussian_curv = ISFcurv.CurvatureISF1(m.vertices,m.faces)[0]
+
+    elapsed = timeit.default_timer() - start_time
+
+    print("The iterative fitting method takes (in seconds):\n")
+    print(elapsed)
+
+    #gaussian_filter(gaussian_curv, sigma=1, output=gaussian_curv)
+    display_mesh(m.vertices, m.faces, m.vertex_normals, gaussian_curv, os.path.join(output_path, "Gaussian_curvature_iterative_fitting.png"))
+##########################################################################################################################################

@@ -12,6 +12,8 @@ import numpy as np
 from numpy.core.umath_tests import inner1d
 from utils import  fastcross,normr
 
+epsilon = 2.220446049250313e-16
+
 def RotateCoordinateSystem(up,vp,nf):
     """
     RotateCoordinateSystem performs the rotation of the vectors up and vp
@@ -91,9 +93,9 @@ def GetVertexNormalsExtra(vertices,faces,FaceNormals,e0,e1,e2):
     VertNormals   =np.zeros(vertices.shape)
 
     #Calculate weights according to N.Max [1999] for normals
-    wfv1=FaceNormals/(L2[:,1]*L2[:,2])[:,np.newaxis]
-    wfv2=FaceNormals/(L2[:,2]*L2[:,0])[:,np.newaxis]
-    wfv3=FaceNormals/(L2[:,0]*L2[:,1])[:,np.newaxis]
+    wfv1=FaceNormals/((L2[:,1]*L2[:,2])[:,np.newaxis]+epsilon)
+    wfv2=FaceNormals/((L2[:,2]*L2[:,0])[:,np.newaxis]+epsilon)
+    wfv3=FaceNormals/((L2[:,0]*L2[:,1])[:,np.newaxis]+epsilon)
 
     verts=faces.T[0]
     for j in [0,1,2]:
@@ -105,21 +107,21 @@ def GetVertexNormalsExtra(vertices,faces,FaceNormals,e0,e1,e2):
     for j in [0,1,2]:
       VertNormals[:,j]+=np.bincount(verts,minlength=vertices.shape[0],weights=wfv3[:,j])
 
-    Acorner=(0.5*Af/(ew[:,0]+ew[:,1]+ew[:,2]))[:,np.newaxis]*np.c_[ew[:,1]+ew[:,2], ew[:,2]+ew[:,0], ew[:,0]+ew[:,1]]
+    Acorner=(0.5*Af/ (ew[:,0]+ew[:,1]+ew[:,2]+epsilon))[:,np.newaxis]*np.c_[ew[:,1]+ew[:,2] , ew[:,2]+ew[:,0], ew[:,0]+ew[:,1]]
 
     #Change the area to barycentric area for obtuse triangles
     for i,f in enumerate(faces):
         if ew[i,0]<=0:
-            Acorner[i,2]=-0.25*L2[i,1]*Af[i]/(sum(e0[i]*e1[i]))
-            Acorner[i,1]=-0.25*L2[i,2]*Af[i]/(sum(e0[i]*e2[i]))
+            Acorner[i,2]=-0.25*L2[i,1]*Af[i]/(sum(e0[i]*e1[i])+epsilon)
+            Acorner[i,1]=-0.25*L2[i,2]*Af[i]/(sum(e0[i]*e2[i])+epsilon)
             Acorner[i,0]=Af[i]-Acorner[i,1]-Acorner[i,2]
         elif ew[i,1]<=0:
-            Acorner[i,2]=-0.25*L2[i,0]*Af[i]/(sum(e1[i]*e0[i]))
-            Acorner[i,0]=-0.25*L2[i,2]*Af[i]/(sum(e1[i]*e2[i]))
+            Acorner[i,2]=-0.25*L2[i,0]*Af[i]/(sum(e1[i]*e0[i])+epsilon)
+            Acorner[i,0]=-0.25*L2[i,2]*Af[i]/(sum(e1[i]*e2[i])+epsilon)
             Acorner[i,1]=Af[i]-Acorner[i,0]-Acorner[i,2]
         elif ew[i,2]<=0:
-            Acorner[i,0]=-0.25*L2[i,1]*Af[i]/(sum(e2[i]*e1[i]))
-            Acorner[i,1]=-0.25*L2[i,0]*Af[i]/(sum(e2[i]*e0[i]))
+            Acorner[i,0]=-0.25*L2[i,1]*Af[i]/(sum(e2[i]*e1[i])+epsilon)
+            Acorner[i,1]=-0.25*L2[i,0]*Af[i]/(sum(e2[i]*e0[i])+epsilon)
             Acorner[i,2]=Af[i]-Acorner[i,0]-Acorner[i,1]
 
 #Accumulate Avertex from Acorner.
