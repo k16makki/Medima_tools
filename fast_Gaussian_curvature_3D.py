@@ -164,7 +164,7 @@ def display_mesh(verts, faces, normals, texture, save_path):
     mesh.colormap = vv.CM_JET
     #mesh.edgeShading = 'smooth'
     #mesh.clim = np.min(texture),np.max(texture)
-    mesh.clim = -0.05, 0.02
+    #mesh.clim = -0.05, 0.02
     vv.callLater(1.0, vv.screenshot, save_path, vv.gcf(), sf=2)
     vv.colorbar()
     #vv.view({'azimuth': 45.0, 'elevation': 45.0})
