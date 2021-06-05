@@ -89,7 +89,7 @@ def display_mesh(verts, faces, normals, texture, save_path):
     mesh = vv.mesh(verts, faces, normals, texture)#, verticesPerFace=3)
     f = vv.gca()
     mesh.colormap = vv.CM_JET
-    mesh.edgeShading = 'smooth'
+    #mesh.edgeShading = 'smooth'
     #mesh.clim = np.min(texture),np.max(texture)
     #mesh.clim = -0.2, 0.2
     vv.callLater(1.0, vv.screenshot, save_path, vv.gcf(), sf=2)
