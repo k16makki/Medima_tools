@@ -91,7 +91,7 @@ def display_mesh(verts, faces, normals, texture, save_path):
     mesh.colormap = vv.CM_JET
     #mesh.edgeShading = 'smooth'
     #mesh.clim = np.min(texture),np.max(texture)
-    #mesh.clim = -0.2, 0.2
+    #mesh.clim = -0.1, 0.1
     vv.callLater(1.0, vv.screenshot, save_path, vv.gcf(), sf=2)
     vv.colorbar()
     #vv.view({'azimuth': 45.0, 'elevation': 45.0})
@@ -153,12 +153,13 @@ if __name__ == '__main__':
     #m.export(output_path+'/surface_mesh.ply')
     m.export(os.path.join(output_path, "surface_mesh.obj"))
 
+    #Affect curvature values, with a nearest neighbour interpolation of vertices on the grid
+    mean_curv = curvature[np.rint(verts[:,0]).astype(int),np.rint(verts[:,1]).astype(int),np.rint(verts[:,2]).astype(int)]
+    #print(np.min(mean_curv),np.max(mean_curv), np.mean(mean_curv))
 
-    texture = curvature[verts[:,0].astype(int),verts[:,1].astype(int),verts[:,2].astype(int)]
-    #print(np.min(texture),np.max(texture))
-    display_mesh(verts, faces, normals, texture, os.path.join(output_path, "mean_curature.png"))
+    display_mesh(verts, faces, normals, mean_curv, os.path.join(output_path, "mean_curature.png"))
 
-#####To compare results with other methods defining the surface explicitly, please comment/uncomment the following blocks ###############
+####To compare results with other methods defining the surface explicitly, please comment/uncomment the following blocks ###############
 
 # #######################################################################################################################################
 # ##### To compare results with the Rusinkiewicz (v1) mean curvature, please uncomment the following block ##########################
@@ -175,6 +176,7 @@ if __name__ == '__main__':
 #     print("The Rusinkiewicz method v1 takes (in seconds):\n")
 #     print(elapsed)
 #
+#     #print(np.min(mean_curv),np.max(mean_curv), np.sqrt(np.absolute(np.mean(mean_curv)-(1/R))))
 #     #gaussian_filter(mean_curv, sigma=1, output=mean_curv)
 #     display_mesh(m.vertices, m.faces, m.vertex_normals, mean_curv, os.path.join(output_path, "mean_curvature_Rusinkiewicz_v1.png"))
 # #########################################################################################################################################
