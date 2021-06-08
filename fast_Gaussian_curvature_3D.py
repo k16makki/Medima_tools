@@ -113,9 +113,22 @@ def Gaussian_curvature(phi_grad,Ha):
     + gz * (gx*Ha[0,2,...]+gy*Ha[1,2,...]+gz*Ha[2,2,...])
     #np.divide(gaussian_curv,np.power(L2_norm_grad(gx,gy,gz),4),gaussian_curv)
     np.divide(gaussian_curv,L2_norm_grad(gx,gy,gz)**4,gaussian_curv)
-    gaussian_filter(gaussian_curv, sigma=1, output=gaussian_curv)
+    #gaussian_filter(gaussian_curv, sigma=1, output=gaussian_curv)
 
     return gaussian_curv
+
+
+def Hessian_adjoint_curvature(phi_grad,Ha):
+
+    gx, gy, gz = phi_grad
+
+    curvature =  gx * (gx*Ha[0,0,...]+gy*Ha[1,0,...]+gz*Ha[2,0,...]) + gy * (gx*Ha[0,1,...]+gy*Ha[1,1,...]+gz*Ha[2,1,...])\
+    + gz * (gx*Ha[0,2,...]+gy*Ha[1,2,...]+gz*Ha[2,2,...])
+    #np.divide(gaussian_curv,np.power(L2_norm_grad(gx,gy,gz),4),gaussian_curv)
+    np.divide(curvature,L2_norm_grad(gx,gy,gz)**3,curvature)
+    gaussian_filter(curvature, sigma=1, output=curvature)
+
+    return curvature
 
 
 def bbox_3D(mask,depth):
@@ -215,6 +228,7 @@ if __name__ == '__main__':
     phi_grad, hessian = hessian(phi)
     Ha = hessian_adjoint(hessian)
     Gaussian_curvature = Gaussian_curvature(phi_grad, Ha)
+    #Gaussian_curvature = Hessian_adjoint_curvature(phi_grad,Ha)
 
 ############################################################################
 
@@ -224,12 +238,7 @@ if __name__ == '__main__':
 
     # extract explicitly the implicit surface mesh using the scikit-image toolbox
 
-    #hdr = nib.load(args.mask).header
-    #dx = hdr.get_zooms()[0] #x-voxel spacing
-    #dy = hdr.get_zooms()[1] #y-voxel spacing
-    #dz = hdr.get_zooms()[2] #z-voxel spacing
-
-    verts, faces, normals, values = measure.marching_cubes_lewiner(phi, 0.0)#, spacing=(dx,dy,dz), gradient_direction='descent')
+    verts, faces, normals, values = measure.marching_cubes_lewiner(phi, 0.0)
     print(verts.shape)
 
     m = trimesh.Trimesh(vertices=verts, faces=faces)
@@ -240,6 +249,15 @@ if __name__ == '__main__':
     gaussian_curv = Gaussian_curvature[np.rint(verts[:,0]).astype(int),np.rint(verts[:,1]).astype(int),np.rint(verts[:,2]).astype(int)]
 
     print(np.min(gaussian_curv),np.max(gaussian_curv),np.mean(gaussian_curv))
+
+    #### Save results as numpy array
+
+    res = np.append(verts,gaussian_curv[...,None],axis=1)
+    np.save(os.path.join(output_path, "gaussian_curv.npy"), res)
+    print(res.shape)
+
+    ## Display result
+
     display_mesh(verts, faces, normals, gaussian_curv, os.path.join(output_path, "Gaussian_curature_Makki.png"))
 
 ##To compare results with other methods defining the surface explicitly, please comment/uncomment the following blocks ###############

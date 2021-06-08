@@ -5,7 +5,7 @@
   Author: Karim Makki
 """
 
-import visvis as vv
+#import visvis as vv
 import trimesh
 import numpy as np
 import nibabel as nib
@@ -13,9 +13,9 @@ import os
 from scipy import ndimage
 from scipy.ndimage.filters import gaussian_filter
 import argparse
-import  skfmm
 from skimage import measure
 import timeit
+import fast_Gaussian_curvature_3D as g3D
 
 ## Import tools for computing curvature on explicit surfaces (for comparison purposes)
 import slam_curvature as scurv
@@ -25,42 +25,23 @@ import CurvatureISF as ISFcurv
 
 
 
-def bbox_3D(mask,depth):
+def hessian_trace(hessian):
 
-    x = np.any(mask, axis=(1, 2))
-    y = np.any(mask, axis=(0, 2))
-    z = np.any(mask, axis=(0, 1))
-    xmin, xmax = np.where(x)[0][[0, -1]]
-    ymin, ymax = np.where(y)[0][[0, -1]]
-    zmin, zmax = np.where(z)[0][[0, -1]]
-
-    return mask[xmin-depth:xmax+depth,ymin-depth:ymax+depth,zmin-depth:zmax+depth]
+    return hessian[0,0,...]+hessian[1,1,...]+hessian[2,2,...]
 
 
-## signed geodesic distance
-def phi(mask):
+def mean_curvature(phi_grad,hessian):
 
-    phi_ext = skfmm.distance(np.max(mask)-mask)
-    phi_int = skfmm.distance(mask)
+    gx, gy, gz = phi_grad
 
-    return  phi_ext - phi_int
+    mean_curv =  (gx * (gx*hessian[0,0,...]+gy*hessian[1,0,...]+gz*hessian[2,0,...]) + gy * (gx*hessian[0,1,...]+gy*hessian[1,1,...]+gz*hessian[2,1,...])\
+    + gz * (gx*hessian[0,2,...]+gy*hessian[1,2,...]+gz*hessian[2,2,...])) - (g3D.L2_norm_grad(gx,gy,gz)**2 *  hessian_trace(hessian))
 
-## signed Euclidean distance
-def phi_Euclidean(mask):
+    np.divide(mean_curv,2*g3D.L2_norm_grad(gx,gy,gz)**3,mean_curv)
+    gaussian_filter(mean_curv, sigma=1, output=mean_curv)
 
-    phi_ext = ndimage.distance_transform_edt(np.max(mask)-mask)
-    phi_int = ndimage.distance_transform_edt(mask)
+    return -mean_curv
 
-    return phi_ext - phi_int
-
-## Binary step function, equivalent to the signed distance funcion, as it satisfies |\nabla \phi | = 1, at least in a vincinity
-## of the zero level set
-def phi_binary(mask):
-
-    phi_bin = np.ones(mask.shape)
-    phi_bin[np.where(mask != 0)] = -1
-
-    return  phi_bin
 
 
 def curvature(phi):
@@ -84,21 +65,7 @@ def curvature(phi):
 
     return  0.5*(g_xx + g_yy + g_zz)
 
-def display_mesh(verts, faces, normals, texture, save_path):
 
-    mesh = vv.mesh(verts, faces, normals, texture)#, verticesPerFace=3)
-    f = vv.gca()
-    mesh.colormap = vv.CM_JET
-    #mesh.edgeShading = 'smooth'
-    #mesh.clim = np.min(texture),np.max(texture)
-    #mesh.clim = -0.1, 0.1
-    vv.callLater(1.0, vv.screenshot, save_path, vv.gcf(), sf=2)
-    vv.colorbar()
-    #vv.view({'azimuth': 45.0, 'elevation': 45.0})
-    f.axis.visible = False
-    vv.use().Run()
-
-    return 0
 
 if __name__ == '__main__':
 
@@ -121,23 +88,30 @@ if __name__ == '__main__':
 
     start_time = timeit.default_timer()
 
-    shape = bbox_3D(shape,5)
+    shape = g3D.bbox_3D(shape,5)
 
     if (args.dmap == 1):
 
-        phi = phi(shape) ## signed geodesic distance
+        phi = g3D.phi(shape) ## signed geodesic distance
 
     elif (args.dmap == 2):
 
-        phi = phi_binary(shape) ## binary step function
+        phi = g3D.phi_binary(shape) ## binary step function
 
     else:
 
-        phi = phi_Euclidean(shape) ## signed Euclidean distance
+        phi = g3D.phi_Euclidean(shape) ## signed Euclidean distance
 
     gaussian_filter(phi, sigma=2, output=phi) ## smoothing of the level set signed distance function
 
-    curvature = curvature(phi)
+    ########## Compute mean curvature ###################
+
+    #curvature = curvature(phi)
+
+    phi_grad, hessian = g3D.hessian(phi)
+    curvature = mean_curvature(phi_grad,hessian)
+
+    ######################################################
 
     elapsed = timeit.default_timer() - start_time
 
@@ -157,7 +131,15 @@ if __name__ == '__main__':
     mean_curv = curvature[np.rint(verts[:,0]).astype(int),np.rint(verts[:,1]).astype(int),np.rint(verts[:,2]).astype(int)]
     #print(np.min(mean_curv),np.max(mean_curv), np.mean(mean_curv))
 
-    display_mesh(verts, faces, normals, mean_curv, os.path.join(output_path, "mean_curature.png"))
+    #### Save results as numpy array
+
+    res = np.append(verts,mean_curv[...,None],axis=1)
+    np.save(os.path.join(output_path, "mean_curv.npy"), res)
+    print(res.shape)
+
+    ## Display result
+
+    g3D.display_mesh(verts, faces, normals, mean_curv, os.path.join(output_path, "mean_curature.png"))
 
 ####To compare results with other methods defining the surface explicitly, please comment/uncomment the following blocks ###############
 
@@ -178,7 +160,7 @@ if __name__ == '__main__':
 #
 #     #print(np.min(mean_curv),np.max(mean_curv), np.sqrt(np.absolute(np.mean(mean_curv)-(1/R))))
 #     #gaussian_filter(mean_curv, sigma=1, output=mean_curv)
-#     display_mesh(m.vertices, m.faces, m.vertex_normals, mean_curv, os.path.join(output_path, "mean_curvature_Rusinkiewicz_v1.png"))
+#     g3D.display_mesh(m.vertices, m.faces, m.vertex_normals, mean_curv, os.path.join(output_path, "mean_curvature_Rusinkiewicz_v1.png"))
 # #########################################################################################################################################
 
 
@@ -199,7 +181,7 @@ if __name__ == '__main__':
     print(elapsed)
 
     #gaussian_filter(mean_curv, sigma=1, output=gaussian_curv)
-    display_mesh(m.vertices, m.faces, m.vertex_normals, mean_curv, os.path.join(output_path, "mean_curvature_Rusinkiewicz_v2.png"))
+    g3D.display_mesh(m.vertices, m.faces, m.vertex_normals, mean_curv, os.path.join(output_path, "mean_curvature_Rusinkiewicz_v2.png"))
 ##########################################################################################################################################
 
 
@@ -219,7 +201,7 @@ if __name__ == '__main__':
 #     print(elapsed)
 #
 #     #gaussian_filter(mean_curv, sigma=1, output=mean_curv)
-#     display_mesh(m.vertices, m.faces, m.vertex_normals, mean_curv, os.path.join(output_path, "mean_curvature_cubic_order.png"))
+#     g3D.display_mesh(m.vertices, m.faces, m.vertex_normals, mean_curv, os.path.join(output_path, "mean_curvature_cubic_order.png"))
 # ##########################################################################################################################################
 
 # #########################################################################################################################################
@@ -236,5 +218,5 @@ if __name__ == '__main__':
 #     print("The iterative fitting method takes (in seconds):\n")
 #     print(elapsed)
 #
-#     display_mesh(m.vertices, m.faces, m.vertex_normals, mean_curv, os.path.join(output_path, "mean_curvature_iterative_fitting.png"))
+#     g3D.display_mesh(m.vertices, m.faces, m.vertex_normals, mean_curv, os.path.join(output_path, "mean_curvature_iterative_fitting.png"))
 # ##########################################################################################################################################
