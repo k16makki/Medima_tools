@@ -27,7 +27,7 @@ import CurvatureISF as ISFcurv
 
 def hessian_trace(hessian):
 
-    return hessian[0,0,...]+hessian[1,1,...]+hessian[2,2,...]
+    return hessian[0,0,...] + hessian[1,1,...] + hessian[2,2,...]
 
 
 def mean_curvature(phi_grad,hessian):
@@ -37,10 +37,10 @@ def mean_curvature(phi_grad,hessian):
     mean_curv =  (gx * (gx*hessian[0,0,...]+gy*hessian[1,0,...]+gz*hessian[2,0,...]) + gy * (gx*hessian[0,1,...]+gy*hessian[1,1,...]+gz*hessian[2,1,...])\
     + gz * (gx*hessian[0,2,...]+gy*hessian[1,2,...]+gz*hessian[2,2,...])) - (g3D.L2_norm_grad(gx,gy,gz)**2 *  hessian_trace(hessian))
 
-    np.divide(mean_curv,2*g3D.L2_norm_grad(gx,gy,gz)**3,mean_curv)
-    gaussian_filter(mean_curv, sigma=1, output=mean_curv)
+    np.divide(mean_curv,-2*g3D.L2_norm_grad(gx,gy,gz)**3,mean_curv)
+    #gaussian_filter(mean_curv, sigma=1, output=mean_curv)
 
-    return -mean_curv
+    return mean_curv
 
 
 
@@ -71,12 +71,12 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
     parser.add_argument('-in', '--mask', help='3D shape binary mask, as NIFTI file', type=str, required = True)
-    parser.add_argument('-o', '--output', help='output directory', type=str, default = './curvature_results')
+    parser.add_argument('-o', '--output', help='output directory', type=str, default = './mean_curvature_results3D')
     parser.add_argument('-dmap', '--dmap', help='distance_map: 0 if Euclidean, 1 if geodesic distance map, and 2 if binary step function', type=int, default = 1)
 
     args = parser.parse_args()
 
-    # Example of use : python3 fast_mean_curvature_3D.py -in ./3D_data/stanford_bunny_binary.nii.gz -dmap 0
+    # Example of use : python3 fast_mean_curvature_3D.py -in ./3D_data/stanford_bunny_binary.nii.gz
 
     output_path = args.output
 

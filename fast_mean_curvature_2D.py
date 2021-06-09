@@ -9,23 +9,37 @@ import  skfmm
 import imageio
 import matplotlib.pyplot as plt
 
+import fast_Gaussian_curvature_3D as g3D
 
-## signed geodesic distance
-def phi(mask):
 
-    phi_ext = skfmm.distance(np.max(mask)-mask)
-    phi_int = skfmm.distance(mask)
 
-    return phi_ext - phi_int
 
-## signed Euclidean distance
-def phi_Euclidean(mask):
+def L2_norm_grad2D(gx,gy):
 
-    phi_ext = ndimage.distance_transform_edt(np.max(mask)-mask)
-    phi_int = ndimage.distance_transform_edt(mask)
+    norm_grad =  np.sqrt(np.square(gx)+np.square(gy))
+    gaussian_filter(norm_grad, sigma=1, output=norm_grad)
+    norm_grad[np.where(norm_grad==0)]=1 # just to avoid dividing by zero
 
-    return phi_ext - phi_int
+    return  norm_grad
 
+
+
+def hessian_trace2D(hessian):
+
+    return hessian[0,0,...] + hessian[1,1,...]
+
+
+def mean_curvature(phi_grad,hessian):
+
+    gx, gy = phi_grad
+
+    mean_curv =  (gx * (gx*hessian[0,0,...]+gy*hessian[1,0,...]) + gy * (gx*hessian[0,1,...]+gy*hessian[1,1,...]))\
+    - (L2_norm_grad2D(gx,gy)**2 *  hessian_trace2D(hessian))
+
+    np.divide(mean_curv,-2*L2_norm_grad2D(gx,gy)**3,mean_curv)
+    gaussian_filter(mean_curv, sigma=2, output=mean_curv)
+
+    return mean_curv
 
 
 def curvature(phi):
@@ -47,7 +61,7 @@ def curvature(phi):
 
 def plot_curvature(phi, curvature, image, out_name):
 
-    contours = np.where(np.logical_and(phi<=0.4, phi>=-0.4))
+    contours = np.where(np.logical_and(phi<=0.3, phi>=-0.3))
     x,y = contours[0], contours[1]
     plt.imshow(image,cmap='gray')
     plt.scatter(y, x, s=1, c= curvature[x,y], cmap='jet')
@@ -73,7 +87,8 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    # Example of use : python3 fast_mean_curvature_2D.py -anat ./2D_data/anatomical_T1.png -in ./2D_data/wm.png
+    # Example of use : python3 fast_mean_curvature_2D.py -anat /home/karim/Bureau/Courbure/2D_data/anatomical_T1.png
+    #-in /home/karim/Bureau/Courbure/2D_data/cortex.png -o /home/karim/Bureau/Courbure/test2D
 
     output_path = args.output
 
@@ -86,10 +101,18 @@ if __name__ == '__main__':
     anat = imageio.imread(args.anatomical)
 
 
-    phi = phi(shape)
+    phi = g3D.phi(shape)
 
     gaussian_filter(phi, sigma=2, output=phi)
 
-    curvature = curvature(phi)
+    ########## Compute mean curvature ###################
+
+    #curvature = curvature(phi)
+
+    phi_grad, hessian = g3D.hessian(phi)
+    curvature = mean_curvature(phi_grad,hessian)
+
+    ######################################################
+
 
     plot_curvature(phi, curvature, anat, output_path+'/mean_curvature.png')

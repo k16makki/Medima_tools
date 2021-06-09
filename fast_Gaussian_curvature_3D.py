@@ -126,7 +126,7 @@ def Hessian_adjoint_curvature(phi_grad,Ha):
     + gz * (gx*Ha[0,2,...]+gy*Ha[1,2,...]+gz*Ha[2,2,...])
     #np.divide(gaussian_curv,np.power(L2_norm_grad(gx,gy,gz),4),gaussian_curv)
     np.divide(curvature,L2_norm_grad(gx,gy,gz)**3,curvature)
-    gaussian_filter(curvature, sigma=1, output=curvature)
+    #gaussian_filter(curvature, sigma=1, output=curvature)
 
     return curvature
 
@@ -177,7 +177,7 @@ def display_mesh(verts, faces, normals, texture, save_path):
     mesh.colormap = vv.CM_JET
     #mesh.edgeShading = 'smooth'
     #mesh.clim = np.min(texture),np.max(texture)
-    #mesh.clim = -0.01, 0.01
+    #mesh.clim = -0.2, 0.2
     vv.callLater(1.0, vv.screenshot, save_path, vv.gcf(), sf=2)
     vv.colorbar()
     #vv.view({'azimuth': 45.0, 'elevation': 45.0})
@@ -191,7 +191,7 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
     parser.add_argument('-in', '--mask', help='3D shape binary mask, as NIFTI file', type=str, required = True)
-    parser.add_argument('-o', '--output', help='output directory', type=str, default = './Gaussian_curvature_results')
+    parser.add_argument('-o', '--output', help='output directory', type=str, default = './Gaussian_curvature_results3D')
     parser.add_argument('-dmap', '--dmap', help='distance_map: 0 if Euclidean, 1 if geodesic distance map, and 2 if binary step function', type=int, default = 1)
 
     args = parser.parse_args()
