@@ -74,9 +74,10 @@ if __name__ == '__main__':
 
     ####################################################################
 
-    lamda1 = g3D.texture_interpolation3D(verts, eig_vals_sorted[...,0])
-    lamda2 = g3D.texture_interpolation3D(verts, eig_vals_sorted[...,1])
-    lamda3 = g3D.texture_interpolation3D(verts, eig_vals_sorted[...,2])
+    #lamda1 = g3D.texture_nearest_neigh_interpolation3D(verts, eig_vals_sorted[...,0])
+    lamda1 = g3D.texture_mean_avg_interpolation3D(verts, eig_vals_sorted[...,0])
+    lamda2 = g3D.texture_mean_avg_interpolation3D(verts, eig_vals_sorted[...,1])
+    lamda3 = g3D.texture_mean_avg_interpolation3D(verts, eig_vals_sorted[...,2])
 
 
     #det = Hessian_determinant[np.rint(verts[:,0]).astype(int),np.rint(verts[:,1]).astype(int),np.rint(verts[:,2]).astype(int)]
@@ -86,9 +87,9 @@ if __name__ == '__main__':
     g3D.display_mesh(verts, faces, normals, lamda2, os.path.join(output_path, "lambda2.png"))
     g3D.display_mesh(verts, faces, normals, lamda3, os.path.join(output_path, "lambda3.png"))
 
-    g3D.display_mesh(verts, faces, normals, (lamda2+lamda3)/2, os.path.join(output_path, "mean_curvature1.png"))
-    #g3D.display_mesh(verts, faces, normals, det, os.path.join(output_path, "Hessian_determinant_Sarrus.png"))
-    g3D.display_mesh(verts, faces, normals, lamda2*lamda3, os.path.join(output_path, "gaussian_curvature1.png"))
+    g3D.display_mesh(verts, faces, normals, (lamda1+lamda2+lamda3)/3, os.path.join(output_path, "mean_curvature1.png"))
+    ##g3D.display_mesh(verts, faces, normals, det, os.path.join(output_path, "Hessian_determinant_Sarrus.png"))
+    g3D.display_mesh(verts, faces, normals, lamda1*lamda2*lamda3, os.path.join(output_path, "gaussian_curvature1.png"))
 
     #error = np.sqrt(np.absolute(det**2 - (lamda1*lamda2*lamda3)**2 ))
 

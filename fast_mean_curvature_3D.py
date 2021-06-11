@@ -127,8 +127,9 @@ if __name__ == '__main__':
     #m.export(output_path+'/surface_mesh.ply')
     m.export(os.path.join(output_path, "surface_mesh.obj"))
 
-    #Affect curvature values, with a nearest neighbour interpolation of vertices on the grid
-    mean_curv = curvature[np.rint(verts[:,0]).astype(int),np.rint(verts[:,1]).astype(int),np.rint(verts[:,2]).astype(int)]
+    # Affect per-vertex curvature values, by interpolation
+    mean_curv = g3D.texture_mean_avg_interpolation3D(verts, curvature)
+
     #print(np.min(mean_curv),np.max(mean_curv), np.mean(mean_curv))
 
     #### Save results as numpy array

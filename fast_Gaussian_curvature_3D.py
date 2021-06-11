@@ -187,16 +187,19 @@ def display_mesh(verts, faces, normals, texture, save_path):
 
     return 0
 
-
-def texture_interpolation3D(verts, texture):
+#### Affect texture value to each vertex by averaging neighbrhood information
+def texture_mean_avg_interpolation3D(verts, texture):
 
     X = np.rint(verts[:,0]).astype(int)
     Y = np.rint(verts[:,1]).astype(int)
     Z = np.rint(verts[:,2]).astype(int)
 
-
     return (texture[X-1,Y,Z] + texture[X+1,Y,Z] + texture[X,Y-1,Z] + texture[X,Y+1,Z] + texture[X,Y,Z-1] + texture[X,Y,Z+1])/6
 
+#### Affect texture value to each vertex by nearest neighbour interpolation
+def texture_nearest_neigh_interpolation3D(verts, texture):
+
+    return texture[np.rint(verts[:,0]).astype(int),np.rint(verts[:,1]).astype(int),np.rint(verts[:,2]).astype(int)]
     #return curv
 
 
@@ -258,10 +261,10 @@ if __name__ == '__main__':
 
     m.export(os.path.join(output_path, "surface_mesh.obj"))
 
-    #Affect curvature values, with a nearest neighbour interpolation of vertices on the grid
+    ### Affect per-vertex curvature values, with a nearest neighbour interpolation of vertices on the grid
 
-    #gaussian_curv = Gaussian_curvature[np.rint(verts[:,0]).astype(int),np.rint(verts[:,1]).astype(int),np.rint(verts[:,2]).astype(int)]
-    gaussian_curv = texture_interpolation3D(verts, Gaussian_curvature)
+    #gaussian_curv = texture_nearest_neigh_interpolation3D(verts, Gaussian_curvature)
+    gaussian_curv = texture_mean_avg_interpolation3D(verts, Gaussian_curvature)
 
     print(np.min(gaussian_curv),np.max(gaussian_curv),np.mean(gaussian_curv))
 
@@ -297,27 +300,27 @@ if __name__ == '__main__':
 # #########################################################################################################################################
 
 
-# #########################################################################################################################################
-# ##### To compare results with the Rusinkiewicz (v2) Gaussian curvature, please uncomment the following block ############################
-# ########################### Note that the second version is quite  faster than the first ################################################
-#
-#     m = trimesh.load_mesh(os.path.join(output_path, "surface_mesh.obj"))
-#
-#     start_time = timeit.default_timer()
-#
-#     #K,H,VN = WpFcurv.GetCurvatures(m.vertices,m.faces)
-#     gaussian_curv = WpFcurv.GetCurvatures(m.vertices,m.faces)[0]
-#
-#     elapsed = timeit.default_timer() - start_time
-#
-#
-#     print("The Rusinkiewicz method v2 takes (in seconds):\n")
-#     print(elapsed)
-#     #print(np.min(gaussian_curv),np.max(gaussian_curv), np.sqrt(np.absolute(np.mean(gaussian_curv)-(1/R**2))))
-#
-#     #gaussian_filter(gaussian_curv, sigma=1, output=gaussian_curv)
-#     display_mesh(m.vertices, m.faces, m.vertex_normals, gaussian_curv, os.path.join(output_path, "Gaussian_curvature_Rusinkiewicz_v2.png"))
-# ##########################################################################################################################################
+#########################################################################################################################################
+##### To compare results with the Rusinkiewicz (v2) Gaussian curvature, please uncomment the following block ############################
+########################### Note that the second version is quite  faster than the first ################################################
+
+    m = trimesh.load_mesh(os.path.join(output_path, "surface_mesh.obj"))
+
+    start_time = timeit.default_timer()
+
+    #K,H,VN = WpFcurv.GetCurvatures(m.vertices,m.faces)
+    gaussian_curv = WpFcurv.GetCurvatures(m.vertices,m.faces)[0]
+
+    elapsed = timeit.default_timer() - start_time
+
+
+    print("The Rusinkiewicz method v2 takes (in seconds):\n")
+    print(elapsed)
+    #print(np.min(gaussian_curv),np.max(gaussian_curv), np.sqrt(np.absolute(np.mean(gaussian_curv)-(1/R**2))))
+
+    #gaussian_filter(gaussian_curv, sigma=1, output=gaussian_curv)
+    display_mesh(m.vertices, m.faces, m.vertex_normals, gaussian_curv, os.path.join(output_path, "Gaussian_curvature_Rusinkiewicz_v2.png"))
+##########################################################################################################################################
 
 
 # #########################################################################################################################################
