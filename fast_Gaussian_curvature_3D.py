@@ -146,8 +146,9 @@ def bbox_3D(mask,depth):
 ## signed geodesic distance function for the implicit surface
 def phi(mask):
 
-    phi_ext = skfmm.distance(np.max(mask)-mask)#,narrow=5.0)
-    phi_int = skfmm.distance(mask)#,narrow=5.0)
+    mask[np.where(mask!=0)] = 1
+    phi_ext = skfmm.distance(1-mask)
+    phi_int = skfmm.distance(mask)
 
     return  phi_ext - phi_int
 
@@ -155,7 +156,8 @@ def phi(mask):
 ## signed Euclidean distance
 def phi_Euclidean(mask):
 
-    phi_ext = ndimage.distance_transform_edt(np.max(mask)-mask)
+    mask[np.where(mask!=0)] = 1
+    phi_ext = ndimage.distance_transform_edt(1-mask)
     phi_int = ndimage.distance_transform_edt(mask)
 
     return phi_ext - phi_int
@@ -172,16 +174,16 @@ def phi_binary(mask):
 
 def display_mesh(verts, faces, normals, texture, save_path):
 
-    mesh = vv.mesh(verts, faces, normals, texture)#, verticesPerFace=3)
+    mesh = vv.mesh(verts, faces, normals, texture)
     f = vv.gca()
-    mesh.colormap = vv.CM_JET
+    mesh.colormap = vv.CM_HSV
     f.axis.visible = False
+    #f.bgcolor = None #1,1,1 #None
     #mesh.edgeShading = 'smooth'
     #mesh.clim = np.min(texture),np.max(texture)
-    #mesh.clim = -0.2, 0.2
     vv.callLater(1.0, vv.screenshot, save_path, vv.gcf(), sf=2, bg='w')
     vv.colorbar()
-    vv.view({'azimuth': 45.0, 'elevation': 45.0})
+    vv.view({'zoom': 0.0053, 'azimuth': 80.0, 'elevation': -5.0})
 
     vv.use().Run()
 
@@ -320,7 +322,7 @@ if __name__ == '__main__':
 
     #gaussian_filter(gaussian_curv, sigma=1, output=gaussian_curv)
     display_mesh(m.vertices, m.faces, m.vertex_normals, gaussian_curv, os.path.join(output_path, "Gaussian_curvature_Rusinkiewicz_v2.png"))
-##########################################################################################################################################
+#########################################################################################################################################
 
 
 # #########################################################################################################################################

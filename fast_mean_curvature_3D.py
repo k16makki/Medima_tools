@@ -44,7 +44,7 @@ def mean_curvature(phi_grad,hessian):
 
 
 
-def curvature(phi):
+def divergence_formula(phi):
 
     g_x,g_y,g_z = np.gradient(phi)
     #smoothing of gradient vector field

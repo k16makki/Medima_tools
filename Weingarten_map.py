@@ -27,6 +27,8 @@ def hessian_determinant(h):
 
     return tmp1 - tmp2
 
+
+
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
@@ -48,7 +50,7 @@ if __name__ == '__main__':
 
     shape = nib.load(args.mask).get_data()
 
-    shape = g3D.bbox_3D(shape,5)
+    shape = g3D.bbox_3D(shape,7)
     phi = g3D.phi(shape) ## signed geodesic distance
 
     gaussian_filter(phi, sigma=2, output=phi) ## the smoothing kernel should be the same everywhere
@@ -62,34 +64,37 @@ if __name__ == '__main__':
 
     Hessian = g3D.hessian(phi)[1]
 
-    #Hessian = g3D.hessian_adjoint(Hessian)
 
     Hessian_determinant = hessian_determinant(Hessian)
+    det = Hessian_determinant[np.rint(verts[:,0]).astype(int),np.rint(verts[:,1]).astype(int),np.rint(verts[:,2]).astype(int)]
+    gx,gy,gz = g3D.hessian(phi)[0]
+    grad_norm = g3D.L2_norm_grad(gx,gy,gz)
+    gauss_curv = np.divide(det,grad_norm[np.rint(verts[:,0]).astype(int),np.rint(verts[:,1]).astype(int),np.rint(verts[:,2]).astype(int)]**2)
 
     ### Compute sorted eigenvalues of the Hessian matrix ###############
 
     Hessian = np.einsum('lmijk->ijklm', Hessian)
     eigenValues, eigenVectors = np.linalg.eig(Hessian)
-    eig_vals_sorted = np.sort(eigenValues)
+    #eigenValues = np.sort(eigenValues)
 
     ####################################################################
 
     #lamda1 = g3D.texture_nearest_neigh_interpolation3D(verts, eig_vals_sorted[...,0])
-    lamda1 = g3D.texture_mean_avg_interpolation3D(verts, eig_vals_sorted[...,0])
-    lamda2 = g3D.texture_mean_avg_interpolation3D(verts, eig_vals_sorted[...,1])
-    lamda3 = g3D.texture_mean_avg_interpolation3D(verts, eig_vals_sorted[...,2])
+    lamda1 = g3D.texture_mean_avg_interpolation3D(verts, eigenValues[...,0])
+    lamda2 = g3D.texture_mean_avg_interpolation3D(verts, eigenValues[...,1])
+    lamda3 = g3D.texture_mean_avg_interpolation3D(verts, eigenValues[...,2])
 
 
-    #det = Hessian_determinant[np.rint(verts[:,0]).astype(int),np.rint(verts[:,1]).astype(int),np.rint(verts[:,2]).astype(int)]
-
+    #
 
     g3D.display_mesh(verts, faces, normals, lamda1, os.path.join(output_path, "lambda1.png"))
     g3D.display_mesh(verts, faces, normals, lamda2, os.path.join(output_path, "lambda2.png"))
     g3D.display_mesh(verts, faces, normals, lamda3, os.path.join(output_path, "lambda3.png"))
 
-    g3D.display_mesh(verts, faces, normals, (lamda1+lamda2+lamda3)/3, os.path.join(output_path, "mean_curvature1.png"))
-    ##g3D.display_mesh(verts, faces, normals, det, os.path.join(output_path, "Hessian_determinant_Sarrus.png"))
-    g3D.display_mesh(verts, faces, normals, lamda1*lamda2*lamda3, os.path.join(output_path, "gaussian_curvature1.png"))
+    g3D.display_mesh(verts, faces, normals, (lamda1+lamda2+lamda3)/2, os.path.join(output_path, "mean_curvature1.png"))
+    g3D.display_mesh(verts, faces, normals, lamda1+lamda2+lamda3, os.path.join(output_path, "Laplacian.png"))
+    g3D.display_mesh(verts, faces, normals, det, os.path.join(output_path, "Hessian_determinant_Sarrus.png"))
+    #g3D.display_mesh(verts, faces, normals, lamda1*lamda3, os.path.join(output_path, "gaussian_curvature1.png"))
 
     #error = np.sqrt(np.absolute(det**2 - (lamda1*lamda2*lamda3)**2 ))
 
