@@ -49,6 +49,9 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
+
+    #### Example of use: python3 sulcal_depth.py -in /home/karim/Bureau/Courbure/data/subject1-session1_R_white.nii.gz -o /home/karim/Bureau/Courbure/test/sulci_R
+
     if not os.path.exists(args.output):
         os.makedirs(args.output)
 
@@ -219,7 +222,7 @@ if __name__ == '__main__':
     nib.save(l, args.output + '/L1.nii.gz')
 
     gaussian_filter(u, sigma=2, output=u)
-    verts, faces, normals, values = measure.marching_cubes_lewiner(u, 1.0) ## surface mesh
+    verts, faces, normals, values = measure.marching_cubes_lewiner(u, 1) ## surface mesh
     #verts, faces, normals, values = measure.marching_cubes_lewiner(u, u_max-5) ##  To display results on convex surface
     m = trimesh.Trimesh(vertices=verts, faces=faces)
     m.export(args.output+'/dilated_surface_mesh.ply')
@@ -227,12 +230,13 @@ if __name__ == '__main__':
 
     texture = depth[verts[:,0].astype(int),verts[:,1].astype(int),verts[:,2].astype(int)]
     print(np.min(texture),np.max(texture))
-    mesh = vv.mesh(np.fliplr(verts), faces, normals, texture)
+    mesh = vv.mesh(verts, faces, normals, texture)
 
     f = vv.gca()
     mesh.colormap = vv.CM_HOT
     vv.callLater(1.0, vv.screenshot, args.output + '/sulcal_depth.png', vv.gcf(), sf=2, bg='w')
     vv.colorbar()
-    vv.view({'zoom': 0.0053, 'azimuth': -65.0, 'elevation': 65.0})
+    #vv.view({'zoom': 0.0053, 'azimuth': -65.0, 'elevation': 65.0})
     f.axis.visible = False
+    vv.view({'zoom': 0.0053, 'azimuth': -80.0, 'elevation': 5.0})
     vv.use().Run()

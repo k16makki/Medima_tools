@@ -144,13 +144,20 @@ def bbox_3D(mask,depth):
 
 
 ## signed geodesic distance function for the implicit surface
-def phi(mask):
+def phi_v1(mask):
 
-    mask[np.where(mask!=0)] = 1
-    phi_ext = skfmm.distance(1-mask)
+    phi_ext = skfmm.distance(np.max(mask)-mask)
     phi_int = skfmm.distance(mask)
 
     return  phi_ext - phi_int
+
+
+def phi(mask):
+
+    tmp = np.ones(mask.shape)
+    tmp[np.where(mask!=0)]= -1
+
+    return  skfmm.distance(tmp)
 
 
 ## signed Euclidean distance
@@ -162,8 +169,9 @@ def phi_Euclidean(mask):
 
     return phi_ext - phi_int
 
-## Binary step function, equivalent to the signed distance funcion, as it satisfies |\nabla \phi | = 1, at least in a vincinity
-## of the zero level set
+## Binary step function, equivalent to the signed distance funcion, as it satisfies |\nabla \phi | = 1, but exclusively at the zero level set.
+## This function is irregular, it is thus not recommended for use.
+
 def phi_binary(mask):
 
     phi_bin = np.ones(mask.shape)
@@ -176,14 +184,14 @@ def display_mesh(verts, faces, normals, texture, save_path):
 
     mesh = vv.mesh(verts, faces, normals, texture)
     f = vv.gca()
-    mesh.colormap = vv.CM_HSV
+    mesh.colormap = vv.CM_JET
     f.axis.visible = False
     #f.bgcolor = None #1,1,1 #None
     #mesh.edgeShading = 'smooth'
     #mesh.clim = np.min(texture),np.max(texture)
     vv.callLater(1.0, vv.screenshot, save_path, vv.gcf(), sf=2, bg='w')
     vv.colorbar()
-    vv.view({'zoom': 0.0053, 'azimuth': 80.0, 'elevation': -5.0})
+    #vv.view({'zoom': 0.0053, 'azimuth': 80.0, 'elevation': -5.0})
 
     vv.use().Run()
 

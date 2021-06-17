@@ -106,7 +106,7 @@ if __name__ == '__main__':
 
     ########## Compute mean curvature ###################
 
-    #curvature = curvature(phi)
+    #curvature = divergence_formula(phi)   ### uncomment this line if you would like to run the divergence formula and comment the two following lines
 
     phi_grad, hessian = g3D.hessian(phi)
     curvature = mean_curvature(phi_grad,hessian)
@@ -130,6 +130,8 @@ if __name__ == '__main__':
     # Affect per-vertex curvature values, by interpolation
     mean_curv = g3D.texture_mean_avg_interpolation3D(verts, curvature)
 
+
+
     #print(np.min(mean_curv),np.max(mean_curv), np.mean(mean_curv))
 
     #### Save results as numpy array
@@ -140,7 +142,7 @@ if __name__ == '__main__':
 
     ## Display result
 
-    g3D.display_mesh(verts, faces, normals, mean_curv, os.path.join(output_path, "mean_curature.png"))
+    g3D.display_mesh(verts, faces, normals, mean_curv, os.path.join(output_path, "mean_curvature.png"))
 
 ####To compare results with other methods defining the surface explicitly, please comment/uncomment the following blocks ###############
 

@@ -77,7 +77,7 @@ if __name__ == '__main__':
     K_G = np.load(args.gaussian_curv)
 
 
-    k1,k2 = principal_curvatures(K_M,K_G)
+    k2,k1 = principal_curvatures(K_M,K_G)
 
     #gaussian_filter(k1, sigma=2, output=k1)
     #gaussian_filter(k2, sigma=2, output=k2)
@@ -86,13 +86,13 @@ if __name__ == '__main__':
     g3D.display_mesh(verts, faces, normals, k2, os.path.join(output_path, "Principal_curvature2.png"))
 
 
-# #######################################################################################################################################
-# ##### To compare results with the Rusinkiewicz (v1) principal curvatures, please uncomment the following block ########################
-
-    m = trimesh.load_mesh(os.path.join(output_path, "surface_mesh.obj"))
-    # Comptue estimations of principal curvatures
-    PrincipalCurvatures, PrincipalDir1, PrincipalDir2 = scurv.curvatures_and_derivatives(m)
-
-    g3D.display_mesh(m.vertices, m.faces, m.vertex_normals, PrincipalCurvatures[0, :], os.path.join(output_path, "Principal_curvature1_Rusinkiewicz.png"))
-    g3D.display_mesh(m.vertices, m.faces, m.vertex_normals, PrincipalCurvatures[1, :], os.path.join(output_path, "Principal_curvature2_Rusinkiewicz.png"))
-#########################################################################################################################################
+# # #######################################################################################################################################
+# # ##### To compare results with the Rusinkiewicz (v1) principal curvatures, please uncomment the following block ########################
+#
+#     m = trimesh.load_mesh(os.path.join(output_path, "surface_mesh.obj"))
+#     # Comptue estimations of principal curvatures
+#     PrincipalCurvatures, PrincipalDir1, PrincipalDir2 = scurv.curvatures_and_derivatives(m)
+#
+#     g3D.display_mesh(m.vertices, m.faces, m.vertex_normals, PrincipalCurvatures[0, :], os.path.join(output_path, "Principal_curvature1_Rusinkiewicz.png"))
+#     g3D.display_mesh(m.vertices, m.faces, m.vertex_normals, PrincipalCurvatures[1, :], os.path.join(output_path, "Principal_curvature2_Rusinkiewicz.png"))
+# #########################################################################################################################################
