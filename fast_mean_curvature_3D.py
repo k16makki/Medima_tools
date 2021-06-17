@@ -22,6 +22,7 @@ import slam_curvature as scurv
 import CurvatureCubic as ccurv
 import CurvatureWpF as WpFcurv
 import CurvatureISF as ISFcurv
+from trimesh import curvature
 
 
 
@@ -109,7 +110,7 @@ if __name__ == '__main__':
     #curvature = divergence_formula(phi)   ### uncomment this line if you would like to run the divergence formula and comment the two following lines
 
     phi_grad, hessian = g3D.hessian(phi)
-    curvature = mean_curvature(phi_grad,hessian)
+    mean_curvature = mean_curvature(phi_grad,hessian)
 
     ######################################################
 
@@ -128,7 +129,7 @@ if __name__ == '__main__':
     m.export(os.path.join(output_path, "surface_mesh.obj"))
 
     # Affect per-vertex curvature values, by interpolation
-    mean_curv = g3D.texture_mean_avg_interpolation3D(verts, curvature)
+    mean_curv = g3D.texture_mean_avg_interpolation3D(verts, mean_curvature)
 
 
 
@@ -144,10 +145,32 @@ if __name__ == '__main__':
 
     g3D.display_mesh(verts, faces, normals, mean_curv, os.path.join(output_path, "mean_curvature.png"))
 
+
 ####To compare results with other methods defining the surface explicitly, please comment/uncomment the following blocks ###############
 
+
+#######################################################################################################################################
+################### To compare results with the Trimesh mean curvature, please uncomment this block ###################################
+
+    m = trimesh.load_mesh(os.path.join(output_path, "surface_mesh.obj"))
+
+    start_time = timeit.default_timer()
+
+    #tr_mean_curv = curvature.discrete_mean_curvature_measure(m, m.vertices, 2)
+    tr_mean_curv = curvature.discrete_mean_curvature_measure(m, m.vertices, 1)
+
+    elapsed = timeit.default_timer() - start_time
+
+    print("The Trimesh method takes (in seconds):\n")
+
+    print(elapsed)
+
+    g3D.display_mesh(m.vertices, m.faces, m.vertex_normals, tr_mean_curv, os.path.join(output_path, "Mean_curvature_Trimesh.png"))
+
+#########################################################################################################################################
+
 # #######################################################################################################################################
-# ##### To compare results with the Rusinkiewicz (v1) mean curvature, please uncomment the following block ##########################
+# ################## To compare results with the Rusinkiewicz (v1) mean curvature, please uncomment this block ##########################
 #
 #     m = trimesh.load_mesh(os.path.join(output_path, "surface_mesh.obj"))
 #
@@ -167,29 +190,29 @@ if __name__ == '__main__':
 # #########################################################################################################################################
 
 
-#########################################################################################################################################
-##### To compare results with the Rusinkiewicz (v2) mean curvature, please uncomment the following block ############################
-########################### Note that the second version is quite  faster than the first ################################################
-
-    m = trimesh.load_mesh(os.path.join(output_path, "surface_mesh.obj"))
-
-    start_time = timeit.default_timer()
-
-    #K,H,VN = WpFcurv.GetCurvatures(m.vertices,m.faces)
-    mean_curv = WpFcurv.GetCurvatures(m.vertices,m.faces)[1]
-
-    elapsed = timeit.default_timer() - start_time
-
-    print("The Rusinkiewicz method v2 takes (in seconds):\n")
-    print(elapsed)
-
-    #gaussian_filter(mean_curv, sigma=1, output=gaussian_curv)
-    g3D.display_mesh(m.vertices, m.faces, m.vertex_normals, mean_curv, os.path.join(output_path, "mean_curvature_Rusinkiewicz_v2.png"))
-##########################################################################################################################################
+# #########################################################################################################################################
+# ##### To compare results with the Rusinkiewicz (v2) mean curvature, please uncomment this block #########################################
+# ########################### Note that the second version is quite  faster than the first ################################################
+#
+#     m = trimesh.load_mesh(os.path.join(output_path, "surface_mesh.obj"))
+#
+#     start_time = timeit.default_timer()
+#
+#     #K,H,VN = WpFcurv.GetCurvatures(m.vertices,m.faces)
+#     mean_curv = WpFcurv.GetCurvatures(m.vertices,m.faces)[1]
+#
+#     elapsed = timeit.default_timer() - start_time
+#
+#     print("The Rusinkiewicz method v2 takes (in seconds):\n")
+#     print(elapsed)
+#
+#     #gaussian_filter(mean_curv, sigma=1, output=gaussian_curv)
+#     g3D.display_mesh(m.vertices, m.faces, m.vertex_normals, mean_curv, os.path.join(output_path, "mean_curvature_Rusinkiewicz_v2.png"))
+# ##########################################################################################################################################
 
 
 # #########################################################################################################################################
-# ##### To compare results with those of the cubic order algorithm, please uncomment the following block ##################################
+# ############## To compare results with those of the cubic order algorithm, please uncomment this block ##################################
 #
 #     m = trimesh.load_mesh(os.path.join(output_path, "surface_mesh.obj"))
 #
@@ -208,7 +231,7 @@ if __name__ == '__main__':
 # ##########################################################################################################################################
 
 # #########################################################################################################################################
-# ##### To compare results with the iterative fitting method, please uncomment the following block ########################################
+# ############## To compare results with the iterative fitting method, please uncomment this block ########################################
 #
 #     m = trimesh.load_mesh(os.path.join(output_path, "surface_mesh.obj"))
 #
