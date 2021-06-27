@@ -23,6 +23,7 @@ import CurvatureCubic as ccurv
 import CurvatureWpF as WpFcurv
 import CurvatureISF as ISFcurv
 from trimesh import curvature
+import DiffGeoOps as diffgeo
 
 
 
@@ -116,7 +117,7 @@ if __name__ == '__main__':
 
     elapsed = timeit.default_timer() - start_time
 
-    print("The proposed method takes:\n")
+    print("The proposed method takes (in seconds):\n")
     print(elapsed)
 
     # extract explicitly the implicit surface mesh using the scikit-image toolbox
@@ -157,7 +158,7 @@ if __name__ == '__main__':
     start_time = timeit.default_timer()
 
     #tr_mean_curv = curvature.discrete_mean_curvature_measure(m, m.vertices, 2)
-    tr_mean_curv = curvature.discrete_mean_curvature_measure(m, m.vertices, 1)
+    tr_mean_curv = curvature.discrete_mean_curvature_measure(m, m.vertices, 1.0)
 
     elapsed = timeit.default_timer() - start_time
 
@@ -245,4 +246,22 @@ if __name__ == '__main__':
 #     print(elapsed)
 #
 #     g3D.display_mesh(m.vertices, m.faces, m.vertex_normals, mean_curv, os.path.join(output_path, "mean_curvature_iterative_fitting.png"))
+# ##########################################################################################################################################
+
+# #########################################################################################################################################
+# ############## To compare results with the method of Meyer, please uncomment this block #################################################
+#
+#     m = trimesh.load_mesh(os.path.join(output_path, "surface_mesh.obj"))
+#
+#     start_time = timeit.default_timer()
+#
+#     A_mixed, mean_curvature_normal_operator_vector = diffgeo.calc_A_mixed(m.vertices, m.faces)
+#     mean_curv = diffgeo.get_mean_curvature(mean_curvature_normal_operator_vector)
+#
+#     elapsed = timeit.default_timer() - start_time
+#
+#     print("The method of Meyer takes (in seconds):\n")
+#     print(elapsed)
+#
+#     g3D.display_mesh(m.vertices, m.faces, m.vertex_normals, mean_curv, os.path.join(output_path, "mean_curvature_Meyer.png"))
 # ##########################################################################################################################################
