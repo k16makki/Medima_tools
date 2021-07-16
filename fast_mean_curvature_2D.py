@@ -9,6 +9,7 @@ import  skfmm
 import imageio
 import matplotlib.pyplot as plt
 
+
 import fast_Gaussian_curvature_3D as g3D
 
 
@@ -61,9 +62,9 @@ def curvature(phi):
 
 def plot_curvature(phi, curvature, image, out_name):
 
-    contours = np.where(np.logical_and(phi<=0.3, phi>=-0.3))
+    contours = np.where(np.logical_and(phi<=0.5, phi>=-0.5))
     x,y = contours[0], contours[1]
-    plt.imshow(image,cmap='gray')
+    plt.imshow(image,cmap='gray',origin='lower')
     plt.scatter(y, x, s=1, c= curvature[x,y], cmap='jet')
     plt.axis("equal")
     plt.colorbar(shrink=0.95)
