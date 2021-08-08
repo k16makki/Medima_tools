@@ -136,11 +136,11 @@ if __name__ == '__main__':
 
         phi = g3D.phi_Euclidean(shape) ## signed Euclidean distance
 
-    gaussian_filter(phi, sigma=2, output=phi) ## smoothing of the level set signed distance function
+    gaussian_filter(phi, sigma=1, output=phi) ## smoothing of the level set signed distance function
 
     ########## Compute mean curvature ###################
 
-    #curvature = divergence_formula(phi)   ### uncomment this line if you would like to run the divergence formula and comment the two following lines
+    #mean_curvature = divergence_formula(phi)   ### uncomment this line if you would like to run the divergence formula and comment the two following lines
 
     phi_grad, hessian = g3D.hessian(phi)
     mean_curvature = mean_curvature(phi_grad,hessian)
@@ -162,9 +162,7 @@ if __name__ == '__main__':
     # Affect per-vertex curvature values, by interpolation
     #mean_curv = g3D.texture_mean_avg_interpolation3D(verts, mean_curvature)
     mean_curv = g3D.texture_nearest_neigh_interpolation3D(verts, mean_curvature)
-
-
-
+    
     #print(np.min(mean_curv),np.max(mean_curv), np.mean(mean_curv))
 
     #### Save results as numpy array
@@ -181,23 +179,23 @@ if __name__ == '__main__':
 ####To compare results with other methods defining the surface explicitly, please comment/uncomment the following blocks ###############
 
 
-#######################################################################################################################################
-################### To compare results with the Trimesh mean curvature, please uncomment this block ###################################
-
-    start_time = timeit.default_timer()
-
-    #tr_mean_curv = curvature.discrete_mean_curvature_measure(m, m.vertices, 2)
-    tr_mean_curv = curvature.discrete_mean_curvature_measure(m, m.vertices, 2)
-
-    elapsed = timeit.default_timer() - start_time
-
-    print("The Trimesh method takes (in seconds):\n")
-
-    print(elapsed)
-
-    g3D.display_mesh(verts, faces, normals, tr_mean_curv, os.path.join(output_path, "Mean_curvature_Trimesh_radius2.png"))
-
-#########################################################################################################################################
+# #######################################################################################################################################
+# ################### To compare results with the Trimesh mean curvature, please uncomment this block ###################################
+#
+#     start_time = timeit.default_timer()
+#
+#     #tr_mean_curv = curvature.discrete_mean_curvature_measure(m, m.vertices, 2)
+#     tr_mean_curv = curvature.discrete_mean_curvature_measure(m, m.vertices, 2)
+#
+#     elapsed = timeit.default_timer() - start_time
+#
+#     print("The Trimesh method takes (in seconds):\n")
+#
+#     print(elapsed)
+#
+#     g3D.display_mesh(verts, faces, normals, tr_mean_curv, os.path.join(output_path, "Mean_curvature_Trimesh_radius2.png"))
+#
+# #########################################################################################################################################
 
 # #######################################################################################################################################
 # ################## To compare results with the Rusinkiewicz (v1) mean curvature, please uncomment this block ##########################
@@ -218,24 +216,24 @@ if __name__ == '__main__':
 # #########################################################################################################################################
 
 
-#########################################################################################################################################
-##### To compare results with the Rusinkiewicz (v2) mean curvature, please uncomment this block #########################################
-########################### Note that the second version is quite  faster than the first ################################################
-
-
-    start_time = timeit.default_timer()
-
-    #K,H,VN = WpFcurv.GetCurvatures(m.vertices,m.faces)
-    mean_curv = WpFcurv.GetCurvatures(m.vertices,m.faces)[1]
-
-    elapsed = timeit.default_timer() - start_time
-
-    print("The Rusinkiewicz method v2 takes (in seconds):\n")
-    print(elapsed)
-
-    #gaussian_filter(mean_curv, sigma=1, output=gaussian_curv)
-    g3D.display_mesh(verts, faces, normals, mean_curv, os.path.join(output_path, "mean_curvature_Rusinkiewicz_v2.png"))
-##########################################################################################################################################
+# #########################################################################################################################################
+# ##### To compare results with the Rusinkiewicz (v2) mean curvature, please uncomment this block #########################################
+# ########################### Note that the second version is quite  faster than the first ################################################
+#
+#
+#     start_time = timeit.default_timer()
+#
+#     #K,H,VN = WpFcurv.GetCurvatures(m.vertices,m.faces)
+#     mean_curv = WpFcurv.GetCurvatures(m.vertices,m.faces)[1]
+#
+#     elapsed = timeit.default_timer() - start_time
+#
+#     print("The Rusinkiewicz method v2 takes (in seconds):\n")
+#     print(elapsed)
+#
+#     #gaussian_filter(mean_curv, sigma=1, output=gaussian_curv)
+#     g3D.display_mesh(verts, faces, normals, mean_curv, os.path.join(output_path, "mean_curvature_Rusinkiewicz_v2.png"))
+# ##########################################################################################################################################
 
 
 # #########################################################################################################################################
