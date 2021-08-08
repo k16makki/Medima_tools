@@ -219,7 +219,7 @@ def display_mesh(verts, faces, normals, texture, save_path):
     #mesh.clim = -0.05,0.02
     vv.callLater(1.0, vv.screenshot, save_path, vv.gcf(), sf=2, bg='w')
     vv.colorbar()
-    #vv.view({'zoom': 0.0053, 'azimuth': 80.0, 'elevation': -5.0})
+    vv.view({'zoom': 0.0053, 'azimuth': -80.0, 'elevation': 5.0})
     #vv.view({'zoom': 0.005, 'azimuth': -80.0, 'elevation': -5.0})
     vv.use().Run()
 
@@ -333,7 +333,7 @@ if __name__ == '__main__':
 #     start_time = timeit.default_timer()
 #
 #     #tr_gaussian_curv = curvature.discrete_gaussian_curvature_measure(m, m.vertices, 2)
-#     tr_gaussian_curv = curvature.discrete_gaussian_curvature_measure(mesh, verts, 2)
+#     tr_gaussian_curv = curvature.discrete_gaussian_curvature_measure(mesh, verts, 0.5)
 #
 #     elapsed = timeit.default_timer() - start_time
 #
@@ -359,10 +359,10 @@ if __name__ == '__main__':
 #     print(elapsed)
 #
 #     #gaussian_filter(gaussian_curv, sigma=1, output=gaussian_curv)
-#     display_mesh(mesh.vertices, mesh.faces, mesh.vertex_normals, gaussian_curv, os.path.join(output_path, "Gaussian_curvature_Rusinkiewicz_v1.png"))
+#     display_mesh(verts, faces, normals, gaussian_curv, os.path.join(output_path, "Gaussian_curvature_Rusinkiewicz_v1.png"))
 # #########################################################################################################################################
-#
-#
+
+
 # #########################################################################################################################################
 # ##### To compare results with the Rusinkiewicz (v2) Gaussian curvature, please uncomment this block #####################################
 # ########################### Note that the second version is quite  faster than the first ################################################
@@ -382,8 +382,8 @@ if __name__ == '__main__':
 #     #gaussian_filter(gaussian_curv, sigma=1, output=gaussian_curv)
 #     display_mesh(verts, faces, normals, gaussian_curv, os.path.join(output_path, "Gaussian_curvature_Rusinkiewicz_v2.png"))
 # #########################################################################################################################################
-#
-#
+
+
 # #########################################################################################################################################
 # ##### To compare results with those of the cubic order algorithm, please uncomment this block ###########################################
 #
@@ -400,7 +400,7 @@ if __name__ == '__main__':
 #     #gaussian_filter(gaussian_curv, sigma=1, output=gaussian_curv)
 #     display_mesh(verts, faces, normals, gaussian_curv, os.path.join(output_path, "Gaussian_curvature_cubic_order.png"))
 # ##########################################################################################################################################
-#
+
 # #########################################################################################################################################
 # ##### To compare results with the iterative fitting method, please uncomment this block #################################################
 #
@@ -416,7 +416,7 @@ if __name__ == '__main__':
 #     #gaussian_filter(gaussian_curv, sigma=1, output=gaussian_curv)
 #     display_mesh(verts, faces, normals, gaussian_curv, os.path.join(output_path, "Gaussian_curvature_iterative_fitting.png"))
 # ##########################################################################################################################################
-#
+
 # #########################################################################################################################################
 # ############## To compare results with the method of Meyer, please uncomment this block #################################################
 #
