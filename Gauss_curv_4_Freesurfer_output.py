@@ -216,7 +216,7 @@ def display_mesh(verts, faces, normals, texture, save_path):
     #f.bgcolor = None #1,1,1 #None
     #mesh.edgeShading = 'smooth'
     #mesh.clim = np.min(texture),np.max(texture)
-    #mesh.clim = -0.05,0.02
+    #mesh.clim = -0.3,0.33
     vv.callLater(1.0, vv.screenshot, save_path, vv.gcf(), sf=2, bg='w')
     vv.colorbar()
     vv.view({'zoom': 0.0053, 'azimuth': -80.0, 'elevation': 5.0})
@@ -284,7 +284,7 @@ if __name__ == '__main__':
         phi = phi_Euclidean(shape) ## signed Euclidean distance
 
 
-    gaussian_filter(phi, sigma=1, output=phi) ## smoothing of the level set signed distance function
+    gaussian_filter(phi, sigma=2, output=phi) ## smoothing of the level set signed distance function
 
 #################### Computation of  Gaussian curvature ###################
     phi_grad, hessian = hessian(phi)
@@ -308,8 +308,8 @@ if __name__ == '__main__':
 
     ### Affect per-vertex curvature values, with a nearest neighbour interpolation of vertices on the grid
 
-    gaussian_curv = texture_nearest_neigh_interpolation3D(verts, Gaussian_curvature)
-    #gaussian_curv = texture_mean_avg_interpolation3D(verts, Gaussian_curvature)
+    #gaussian_curv = texture_nearest_neigh_interpolation3D(verts, Gaussian_curvature)
+    gaussian_curv = texture_mean_avg_interpolation3D(verts, Gaussian_curvature)
 
     print(np.min(gaussian_curv),np.max(gaussian_curv),np.mean(gaussian_curv))
 
@@ -320,8 +320,9 @@ if __name__ == '__main__':
     print(res.shape)
 
     ## Display result
+    #display_mesh(verts, faces, normals, None, os.path.join(output_path, "Freesurfer_output_mesh_with_edges.png"))
 
-    display_mesh(verts, faces, normals, gaussian_curv, os.path.join(output_path, "Gaussian_curature_Makki_new.png"))
+    display_mesh(verts, faces, normals, gaussian_curv, os.path.join(output_path, "Gaussian_curature_Makki.png"))
 
 
 ##To compare results with other methods defining the surface explicitly, please comment/uncomment the following blocks ###############
