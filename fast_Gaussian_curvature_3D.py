@@ -17,6 +17,9 @@ import  skfmm
 from skimage import measure
 import timeit
 
+
+from scipy.ndimage.interpolation import map_coordinates
+
 ## Import tools for computing curvature on explicit surfaces (for comparison purposes)
 import slam_curvature as scurv
 import CurvatureCubic as ccurv
@@ -211,7 +214,16 @@ def texture_mean_avg_interpolation3D(verts, texture):
 def texture_nearest_neigh_interpolation3D(verts, texture):
 
     return texture[np.rint(verts[:,0]).astype(int),np.rint(verts[:,1]).astype(int),np.rint(verts[:,2]).astype(int)]
-    #return curv
+
+###    Affect texture value to each vertex by spline interpolation, for the different modes as explained in: https://docs.scipy.org/doc/scipy/reference/generated/scipy.ndimage.map_coordinates.html
+
+def texture_spline_interpolation3D(verts, texture):
+
+    val = np.zeros(verts[:,0].shape)
+    map_coordinates(texture,[verts[:,0],verts[:,1],verts[:,2]],output=val,order=2, mode='nearest')
+
+    return val
+
 
 
 if __name__ == '__main__':
@@ -275,7 +287,8 @@ if __name__ == '__main__':
     ### Affect per-vertex curvature values, with a nearest neighbour interpolation of vertices on the grid
 
     #gaussian_curv = texture_nearest_neigh_interpolation3D(verts, Gaussian_curvature)
-    gaussian_curv = texture_mean_avg_interpolation3D(verts, Gaussian_curvature)
+    #gaussian_curv = texture_mean_avg_interpolation3D(verts, Gaussian_curvature)
+    gaussian_curv = texture_spline_interpolation3D(verts, Gaussian_curvature)
 
     print(np.min(gaussian_curv),np.max(gaussian_curv),np.mean(gaussian_curv))
 

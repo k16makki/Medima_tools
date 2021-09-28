@@ -346,22 +346,22 @@ if __name__ == '__main__':
 #
 # #########################################################################################################################################
 
-# #######################################################################################################################################
-# ##### To compare results with the Rusinkiewicz (v1) Gaussian curvature, please uncomment this block ###################################
-#
-#     start_time = timeit.default_timer()
-#     # Comptue estimations of principal curvatures
-#     PrincipalCurvatures, PrincipalDir1, PrincipalDir2 = scurv.curvatures_and_derivatives(mesh)
-#     gaussian_curv = PrincipalCurvatures[0, :] * PrincipalCurvatures[1, :]
-#
-#     elapsed = timeit.default_timer() - start_time
-#
-#     print("The Rusinkiewicz method v1 takes (in seconds):\n")
-#     print(elapsed)
-#
-#     #gaussian_filter(gaussian_curv, sigma=1, output=gaussian_curv)
-#     display_mesh(verts, faces, normals, gaussian_curv, os.path.join(output_path, "Gaussian_curvature_Rusinkiewicz_v1.png"))
-# #########################################################################################################################################
+#######################################################################################################################################
+##### To compare results with the Rusinkiewicz (v1) Gaussian curvature, please uncomment this block ###################################
+
+    start_time = timeit.default_timer()
+    # Comptue estimations of principal curvatures
+    PrincipalCurvatures, PrincipalDir1, PrincipalDir2 = scurv.curvatures_and_derivatives(mesh)
+    gaussian_curv = PrincipalCurvatures[0, :] * PrincipalCurvatures[1, :]
+
+    elapsed = timeit.default_timer() - start_time
+
+    print("The Rusinkiewicz method v1 takes (in seconds):\n")
+    print(elapsed)
+
+    #gaussian_filter(gaussian_curv, sigma=1, output=gaussian_curv)
+    display_mesh(verts, faces, normals, gaussian_curv, os.path.join(output_path, "Gaussian_curvature_Rusinkiewicz_v1.png"))
+#########################################################################################################################################
 
 
 # #########################################################################################################################################

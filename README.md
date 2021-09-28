@@ -27,3 +27,5 @@ pip3 install pyqt5==5.14.0
 pip3 install rtree
 
 pip3 install scikit-image
+
+If you use the code for your research, please cite one of the paper: "Makki, K, Ben Salem, Douraied and Ben Amor, Boulbaba. "Towards the assessment of intrinsic geometry of implicit brain MRI manifolds." IEEE Access (2021)"

@@ -9,7 +9,6 @@ import  skfmm
 import imageio
 import matplotlib.pyplot as plt
 
-
 import fast_Gaussian_curvature_3D as g3D
 
 
@@ -22,7 +21,6 @@ def L2_norm_grad2D(gx,gy):
     norm_grad[np.where(norm_grad==0)]=1 # just to avoid dividing by zero
 
     return  norm_grad
-
 
 
 def hessian_trace2D(hessian):
@@ -99,10 +97,24 @@ if __name__ == '__main__':
 
     shape = imageio.imread(args.mask)
 
+    plt.imshow(shape,cmap='gray',origin='lower')
+    plt.axis('off')
+    plt.savefig(output_path+'/binary_mask.png', dpi=500)
+    plt.show()
+
+
+
     anat = imageio.imread(args.anatomical)
 
 
     phi = g3D.phi(shape)
+
+    plt.imshow(phi,cmap='jet',origin='lower')
+    plt.axis('off')
+    plt.colorbar(shrink=0.95)
+    plt.contour(phi, 0, colors='red')
+    plt.savefig(output_path+'/marching_squares.png', dpi=500)
+    plt.show()
 
     gaussian_filter(phi, sigma=2, output=phi)
 
@@ -113,6 +125,10 @@ if __name__ == '__main__':
     phi_grad, hessian = g3D.hessian(phi)
     curvature = mean_curvature(phi_grad,hessian)
 
+    plt.imshow(curvature,cmap='jet',origin='lower')
+    plt.axis('off')
+    plt.savefig(output_path+'/mean_curv.png', dpi=500)
+    plt.show()
     ######################################################
 
 

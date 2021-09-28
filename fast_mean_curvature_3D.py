@@ -130,8 +130,8 @@ if __name__ == '__main__':
     m.export(os.path.join(output_path, "surface_mesh.obj"))
 
     # Affect per-vertex curvature values, by interpolation
+    #mean_curv = g3D.texture_mean_avg_interpolation3D(verts, mean_curvature)
     mean_curv = g3D.texture_mean_avg_interpolation3D(verts, mean_curvature)
-
 
 
     #print(np.min(mean_curv),np.max(mean_curv), np.mean(mean_curv))
@@ -144,31 +144,32 @@ if __name__ == '__main__':
 
     ## Display result
 
-    g3D.display_mesh(verts, faces, normals, mean_curv, os.path.join(output_path, "mean_curvature.png"))
+    #g3D.display_mesh(verts, faces, normals, None, os.path.join(output_path, "surface_makki.png"))
+    g3D.display_mesh(verts, faces, normals, mean_curv, os.path.join(output_path, "mean_curvature_makki.png"))
 
 
 ####To compare results with other methods defining the surface explicitly, please comment/uncomment the following blocks ###############
 
 
-#######################################################################################################################################
-################### To compare results with the Trimesh mean curvature, please uncomment this block ###################################
-
-    m = trimesh.load_mesh(os.path.join(output_path, "surface_mesh.obj"))
-
-    start_time = timeit.default_timer()
-
-    #tr_mean_curv = curvature.discrete_mean_curvature_measure(m, m.vertices, 2)
-    tr_mean_curv = curvature.discrete_mean_curvature_measure(m, m.vertices, 1.0)
-
-    elapsed = timeit.default_timer() - start_time
-
-    print("The Trimesh method takes (in seconds):\n")
-
-    print(elapsed)
-
-    g3D.display_mesh(m.vertices, m.faces, m.vertex_normals, tr_mean_curv, os.path.join(output_path, "Mean_curvature_Trimesh.png"))
-
-#########################################################################################################################################
+# #######################################################################################################################################
+# ################### To compare results with the Trimesh mean curvature, please uncomment this block ###################################
+#
+#     m = trimesh.load_mesh(os.path.join(output_path, "surface_mesh.obj"))
+#
+#     start_time = timeit.default_timer()
+#
+#     #tr_mean_curv = curvature.discrete_mean_curvature_measure(m, m.vertices, 2)
+#     tr_mean_curv = curvature.discrete_mean_curvature_measure(m, m.vertices, 1.0)
+#
+#     elapsed = timeit.default_timer() - start_time
+#
+#     print("The Trimesh method takes (in seconds):\n")
+#
+#     print(elapsed)
+#
+#     g3D.display_mesh(m.vertices, m.faces, m.vertex_normals, tr_mean_curv, os.path.join(output_path, "Mean_curvature_Trimesh.png"))
+#
+# #########################################################################################################################################
 
 # #######################################################################################################################################
 # ################## To compare results with the Rusinkiewicz (v1) mean curvature, please uncomment this block ##########################
