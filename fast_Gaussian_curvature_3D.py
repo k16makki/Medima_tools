@@ -16,8 +16,6 @@ import argparse
 import  skfmm
 from skimage import measure
 import timeit
-
-
 from scipy.ndimage.interpolation import map_coordinates
 
 ## Import tools for computing curvature on explicit surfaces (for comparison purposes)
@@ -134,7 +132,7 @@ def Hessian_adjoint_curvature(phi_grad,Ha):
     return curvature
 
 
-def bbox_3D(mask,depth):
+def bbox_3D(mask,depth=5):
 
     x = np.any(mask, axis=(1, 2))
     y = np.any(mask, axis=(0, 2))
@@ -143,7 +141,26 @@ def bbox_3D(mask,depth):
     ymin, ymax = np.where(y)[0][[0, -1]]
     zmin, zmax = np.where(z)[0][[0, -1]]
 
-    return mask[xmin-depth:xmax+depth,ymin-depth:ymax+depth,zmin-depth:zmax+depth]
+    return mask[xmin-depth:xmax+depth,ymin-depth:ymax+depth,zmin-depth:zmax+depth], xmin-depth, ymin-depth, zmin-depth
+
+
+### A function to compensate the effect of bounding bbox_3D
+
+def align_origin(verts,dx,dy,dz):
+
+    verts[:,0] -= dx
+    verts[:,1] -= dy
+    verts[:,2] -= dz
+
+    return  verts
+
+def align_origin_back(verts,dx,dy,dz):
+
+    verts[:,0] += dx
+    verts[:,1] += dy
+    verts[:,2] += dz
+
+    return  verts
 
 
 ## signed geodesic distance function for the implicit surface
@@ -246,7 +263,7 @@ if __name__ == '__main__':
 
     start_time = timeit.default_timer()
 
-    shape = bbox_3D(shape,5)
+    shape, dx, dy, dz = bbox_3D(shape)
 
     if (args.dmap == 1):
 
@@ -280,15 +297,17 @@ if __name__ == '__main__':
     verts, faces, normals, values = measure.marching_cubes_lewiner(phi, 0.0)
     print(verts.shape)
 
-    m = trimesh.Trimesh(vertices=verts, faces=faces)
-
-    m.export(os.path.join(output_path, "surface_mesh.obj"))
-
     ### Affect per-vertex curvature values, with a nearest neighbour interpolation of vertices on the grid
 
     #gaussian_curv = texture_nearest_neigh_interpolation3D(verts, Gaussian_curvature)
     #gaussian_curv = texture_mean_avg_interpolation3D(verts, Gaussian_curvature)
     gaussian_curv = texture_spline_interpolation3D(verts, Gaussian_curvature)
+
+    verts = align_origin_back(verts,dx,dy,dz)
+
+
+    m = trimesh.Trimesh(vertices=verts, faces=faces)
+    m.export(os.path.join(output_path, "surface_mesh.obj"))
 
     print(np.min(gaussian_curv),np.max(gaussian_curv),np.mean(gaussian_curv))
 
@@ -303,7 +322,7 @@ if __name__ == '__main__':
     display_mesh(verts, faces, normals, gaussian_curv, os.path.join(output_path, "Gaussian_curature_Makki.png"))
 
 
-##To compare results with other methods defining the surface explicitly, please comment/uncomment the following blocks ###############
+##To compare results with other methods defining the surface explicitly, please uncomment one of the following blocks #################
 
 
 # #######################################################################################################################################
@@ -314,7 +333,7 @@ if __name__ == '__main__':
 #     start_time = timeit.default_timer()
 #
 #     #tr_gaussian_curv = curvature.discrete_gaussian_curvature_measure(m, m.vertices, 2)
-#     tr_gaussian_curv = curvature.discrete_gaussian_curvature_measure(m, m.vertices, 0.5)
+#     tr_gaussian_curv = curvature.discrete_gaussian_curvature_measure(m, m.vertices, 2)
 #
 #     elapsed = timeit.default_timer() - start_time
 #
@@ -324,7 +343,7 @@ if __name__ == '__main__':
 #
 #     display_mesh(m.vertices, m.faces, m.vertex_normals, tr_gaussian_curv, os.path.join(output_path, "Gaussian_curvature_Trimesh.png"))
 #
-# #########################################################################################################################################
+# ########################################################################################################################################
 
 # #######################################################################################################################################
 # ##### To compare results with the Rusinkiewicz (v1) Gaussian curvature, please uncomment this block ###################################

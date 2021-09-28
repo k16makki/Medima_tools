@@ -90,7 +90,7 @@ if __name__ == '__main__':
 
     start_time = timeit.default_timer()
 
-    shape = g3D.bbox_3D(shape,5)
+    shape, dx, dy, dz = g3D.bbox_3D(shape)
 
     if (args.dmap == 1):
 
@@ -125,14 +125,16 @@ if __name__ == '__main__':
     verts, faces, normals, values = measure.marching_cubes_lewiner(phi, 0.0)#, gradient_direction='descent')
 
     print(verts.shape)
-    m = trimesh.Trimesh(vertices=verts, faces=faces)
-    #m.export(output_path+'/surface_mesh.ply')
-    m.export(os.path.join(output_path, "surface_mesh.obj"))
 
     # Affect per-vertex curvature values, by interpolation
     #mean_curv = g3D.texture_mean_avg_interpolation3D(verts, mean_curvature)
-    mean_curv = g3D.texture_mean_avg_interpolation3D(verts, mean_curvature)
+    mean_curv = g3D.texture_spline_interpolation3D(verts, mean_curvature)
 
+    verts = g3D.align_origin_back(verts,dx,dy,dz)
+
+    m = trimesh.Trimesh(vertices=verts, faces=faces)
+    #m.export(output_path+'/surface_mesh.ply')
+    m.export(os.path.join(output_path, "surface_mesh.obj"))
 
     #print(np.min(mean_curv),np.max(mean_curv), np.mean(mean_curv))
 
@@ -145,10 +147,10 @@ if __name__ == '__main__':
     ## Display result
 
     #g3D.display_mesh(verts, faces, normals, None, os.path.join(output_path, "surface_makki.png"))
-    g3D.display_mesh(verts, faces, normals, mean_curv, os.path.join(output_path, "mean_curvature_makki.png"))
+    g3D.display_mesh(verts, faces, normals, mean_curv, os.path.join(output_path, "mean_curvature_Makki.png"))
 
 
-####To compare results with other methods defining the surface explicitly, please comment/uncomment the following blocks ###############
+##To compare results with other methods defining the surface explicitly, please uncomment one of the following blocks #################
 
 
 # #######################################################################################################################################
@@ -170,7 +172,7 @@ if __name__ == '__main__':
 #     g3D.display_mesh(m.vertices, m.faces, m.vertex_normals, tr_mean_curv, os.path.join(output_path, "Mean_curvature_Trimesh.png"))
 #
 # #########################################################################################################################################
-
+#
 # #######################################################################################################################################
 # ################## To compare results with the Rusinkiewicz (v1) mean curvature, please uncomment this block ##########################
 #
@@ -190,8 +192,8 @@ if __name__ == '__main__':
 #     #gaussian_filter(mean_curv, sigma=1, output=mean_curv)
 #     g3D.display_mesh(m.vertices, m.faces, m.vertex_normals, mean_curv, os.path.join(output_path, "mean_curvature_Rusinkiewicz_v1.png"))
 # #########################################################################################################################################
-
-
+#
+#
 # #########################################################################################################################################
 # ##### To compare results with the Rusinkiewicz (v2) mean curvature, please uncomment this block #########################################
 # ########################### Note that the second version is quite  faster than the first ################################################
@@ -211,8 +213,8 @@ if __name__ == '__main__':
 #     #gaussian_filter(mean_curv, sigma=1, output=gaussian_curv)
 #     g3D.display_mesh(m.vertices, m.faces, m.vertex_normals, mean_curv, os.path.join(output_path, "mean_curvature_Rusinkiewicz_v2.png"))
 # ##########################################################################################################################################
-
-
+#
+#
 # #########################################################################################################################################
 # ############## To compare results with those of the cubic order algorithm, please uncomment this block ##################################
 #
@@ -231,7 +233,7 @@ if __name__ == '__main__':
 #     #gaussian_filter(mean_curv, sigma=1, output=mean_curv)
 #     g3D.display_mesh(m.vertices, m.faces, m.vertex_normals, mean_curv, os.path.join(output_path, "mean_curvature_cubic_order.png"))
 # ##########################################################################################################################################
-
+#
 # #########################################################################################################################################
 # ############## To compare results with the iterative fitting method, please uncomment this block ########################################
 #
@@ -248,7 +250,7 @@ if __name__ == '__main__':
 #
 #     g3D.display_mesh(m.vertices, m.faces, m.vertex_normals, mean_curv, os.path.join(output_path, "mean_curvature_iterative_fitting.png"))
 # ##########################################################################################################################################
-
+#
 # #########################################################################################################################################
 # ############## To compare results with the method of Meyer, please uncomment this block #################################################
 #

@@ -17,6 +17,8 @@ from skimage import measure
 
 import fast_Gaussian_curvature_3D as g3D
 
+### To do : interpolation + recuperation of coordinates in the original image
+
 
 #### Compute the Hessian determinant using the rule of Sarrus
 

@@ -5,19 +5,19 @@
   Author: Karim Makki
 """
 
-#import visvis as vv
-import trimesh
+### Reference: "Makki, K, Ben Salem, Douraied and Ben Amor, Boulbaba. "Towards the assessment of intrinsic geometry of implicit brain MRI manifolds." IEEE Access (2021)"
+
 import numpy as np
 import nibabel as nib
 import os
-from scipy import ndimage
 from scipy.ndimage.filters import gaussian_filter
 import argparse
-from skimage import measure
 import timeit
 import fast_Gaussian_curvature_3D as g3D
+import fast_mean_curvature_3D as m3D
+import Gauss_curv_4_Freesurfer_output as GFS
 
-## Import tools for computing curvature on explicit surfaces (for comparison purposes)
+## Import tools for computing curvature on explicit surfaces / i.e. triangle meshes (for comparison purposes)
 import slam_curvature as scurv
 import CurvatureCubic as ccurv
 import CurvatureWpF as WpFcurv
@@ -32,27 +32,13 @@ def hessian_trace(hessian):
     return hessian[0,0,...] + hessian[1,1,...] + hessian[2,2,...]
 
 
-def mean_curvature(phi_grad,hessian):
-
-    gx, gy, gz = phi_grad
-
-    mean_curv =  (gx * (gx*hessian[0,0,...]+gy*hessian[1,0,...]+gz*hessian[2,0,...]) + gy * (gx*hessian[0,1,...]+gy*hessian[1,1,...]+gz*hessian[2,1,...])\
-    + gz * (gx*hessian[0,2,...]+gy*hessian[1,2,...]+gz*hessian[2,2,...])) - (g3D.L2_norm_grad(gx,gy,gz)**2 *  hessian_trace(hessian))
-
-    np.divide(mean_curv,-2*g3D.L2_norm_grad(gx,gy,gz)**3,mean_curv)
-    #gaussian_filter(mean_curv, sigma=1, output=mean_curv)
-
-    return mean_curv
-
-
-
 def divergence_formula(phi):
 
     g_x,g_y,g_z = np.gradient(phi)
     #smoothing of gradient vector field
-    gaussian_filter(g_x, sigma=2, output=g_x)
-    gaussian_filter(g_y, sigma=2, output=g_y)
-    gaussian_filter(g_z, sigma=2, output=g_z)
+    gaussian_filter(g_x, sigma=1, output=g_x)
+    gaussian_filter(g_y, sigma=1, output=g_y)
+    gaussian_filter(g_z, sigma=1, output=g_z)
     norm_grad =  np.sqrt(np.power(g_x,2)+np.power(g_y,2)+np.power(g_z,2))
     norm_grad[np.where(norm_grad==0)]=1
     np.divide(g_x,norm_grad,g_x)
@@ -61,38 +47,11 @@ def divergence_formula(phi):
     g_xx, g_yx , g_zx = np.gradient(g_x)
     g_xy, g_yy , g_zy = np.gradient(g_y)
     g_xz, g_yz , g_zz = np.gradient(g_z)
-    gaussian_filter(g_xx, sigma=2, output=g_xx)
-    gaussian_filter(g_yy, sigma=2, output=g_yy)
-    gaussian_filter(g_zz, sigma=2, output=g_zz)
+    gaussian_filter(g_xx, sigma=1, output=g_xx)
+    gaussian_filter(g_yy, sigma=1, output=g_yy)
+    gaussian_filter(g_zz, sigma=1, output=g_zz)
 
     return  0.5*(g_xx + g_yy + g_zz)
-
-def load_mesh(gii_file):
-    """
-    load gifti_file and create a trimesh object
-    :param gifti_file: str, path to the gifti file
-    :return: the corresponding trimesh object
-    """
-    g = nib.gifti.read(gii_file)
-    vertices, faces = g.getArraysFromIntent(
-        nib.nifti1.intent_codes['NIFTI_INTENT_POINTSET'])[0].data, \
-        g.getArraysFromIntent(
-            nib.nifti1.intent_codes['NIFTI_INTENT_TRIANGLE'])[0].data
-    metadata = g.get_meta().metadata
-    metadata['filename'] = gii_file
-
-    return trimesh.Trimesh(faces=faces, vertices=vertices,
-                           metadata=metadata, process=False)
-
-
-def map_coordinates(verts,aff):
-
-    coords = np.zeros(verts.shape)
-    coords[:,0] = aff[0,0]*verts[:,0] + aff[0,1]*verts[:,1] + aff[0,2]*verts[:,2] + aff[0,3]
-    coords[:,1] = aff[1,0]*verts[:,0] + aff[1,1]*verts[:,1] + aff[1,2]*verts[:,2] + aff[1,3]
-    coords[:,2] = aff[2,0]*verts[:,0] + aff[2,1]*verts[:,1] + aff[2,2]*verts[:,2] + aff[2,3]
-
-    return coords
 
 if __name__ == '__main__':
 
@@ -122,7 +81,7 @@ if __name__ == '__main__':
 
     start_time = timeit.default_timer()
 
-    #shape = g3D.bbox_3D(shape,5)
+    shape, dx, dy, dz = g3D.bbox_3D(shape)
 
     if (args.dmap == 1):
 
@@ -140,10 +99,10 @@ if __name__ == '__main__':
 
     ########## Compute mean curvature ###################
 
-    #mean_curvature = divergence_formula(phi)   ### uncomment this line if you would like to run the divergence formula and comment the two following lines
+    #mean_curvature = divergence_formula(phi)   ### uncomment this line (and comment the two following) if you would like to use the divergence formula
 
     phi_grad, hessian = g3D.hessian(phi)
-    mean_curvature = mean_curvature(phi_grad,hessian)
+    mean_curvature = m3D.mean_curvature(phi_grad,hessian)
 
     ######################################################
 
@@ -153,17 +112,19 @@ if __name__ == '__main__':
     print(elapsed)
 
     ## load gifti mesh
-    m = load_mesh(args.mesh)
-    ## Express coordinates in the image coordinate system
-    verts = map_coordinates(m.vertices,np.linalg.inv(affine))
-    faces = m.faces
-    normals = m.vertex_normals
+    m = GFS.load_mesh(args.mesh)
+    ## Express vertex coordinates in the image coordinate system
+    verts = GFS.map_coordinates(m.vertices,np.linalg.inv(affine))
+
+    verts = g3D.align_origin(verts,dx,dy,dz) ### Align origin with the origin of the bounding box
 
     # Affect per-vertex curvature values, by interpolation
+
     #mean_curv = g3D.texture_mean_avg_interpolation3D(verts, mean_curvature)
-    mean_curv = g3D.texture_nearest_neigh_interpolation3D(verts, mean_curvature)
-    
-    #print(np.min(mean_curv),np.max(mean_curv), np.mean(mean_curv))
+    #mean_curv = g3D.texture_nearest_neigh_interpolation3D(verts, mean_curvature)
+    mean_curv = g3D.texture_spline_interpolation3D(verts, mean_curvature)
+
+    verts = g3D.align_origin_back(verts,dx,dy,dz) ### Re-align origin "back" with the origin of the original image
 
     #### Save results as numpy array
 
@@ -173,7 +134,7 @@ if __name__ == '__main__':
 
     ## Display result
 
-    g3D.display_mesh(verts, faces, normals, mean_curv, os.path.join(output_path, "mean_curvature_Makki_nearest.png"))
+    g3D.display_mesh(m.vertices, m.faces, m.vertex_normals, mean_curv, os.path.join(output_path, "mean_curvature_Makki_nearest.png"))
 
 
 ####To compare results with other methods defining the surface explicitly, please comment/uncomment the following blocks ###############
@@ -193,10 +154,10 @@ if __name__ == '__main__':
 #
 #     print(elapsed)
 #
-#     g3D.display_mesh(verts, faces, normals, tr_mean_curv, os.path.join(output_path, "Mean_curvature_Trimesh_radius2.png"))
+#     g3D.display_mesh(m.vertices, m.faces, m.vertex_normals, tr_mean_curv, os.path.join(output_path, "Mean_curvature_Trimesh_radius2.png"))
 #
 # #########################################################################################################################################
-
+#
 # #######################################################################################################################################
 # ################## To compare results with the Rusinkiewicz (v1) mean curvature, please uncomment this block ##########################
 #
@@ -212,14 +173,13 @@ if __name__ == '__main__':
 #
 #     #print(np.min(mean_curv),np.max(mean_curv), np.sqrt(np.absolute(np.mean(mean_curv)-(1/R))))
 #     #gaussian_filter(mean_curv, sigma=1, output=mean_curv)
-#     g3D.display_mesh(verts, faces, normals, mean_curv, os.path.join(output_path, "mean_curvature_Rusinkiewicz_v1.png"))
+#     g3D.display_mesh(m.vertices, m.faces, m.vertex_normals, mean_curv, os.path.join(output_path, "mean_curvature_Rusinkiewicz_v1.png"))
 # #########################################################################################################################################
-
-
+#
+#
 # #########################################################################################################################################
 # ##### To compare results with the Rusinkiewicz (v2) mean curvature, please uncomment this block #########################################
 # ########################### Note that the second version is quite  faster than the first ################################################
-#
 #
 #     start_time = timeit.default_timer()
 #
@@ -232,10 +192,10 @@ if __name__ == '__main__':
 #     print(elapsed)
 #
 #     #gaussian_filter(mean_curv, sigma=1, output=gaussian_curv)
-#     g3D.display_mesh(verts, faces, normals, mean_curv, os.path.join(output_path, "mean_curvature_Rusinkiewicz_v2.png"))
+#     g3D.display_mesh(m.vertices, m.faces, m.vertex_normals, mean_curv, os.path.join(output_path, "mean_curvature_Rusinkiewicz_v2.png"))
 # ##########################################################################################################################################
-
-
+#
+#
 # #########################################################################################################################################
 # ############## To compare results with those of the cubic order algorithm, please uncomment this block ##################################
 #
@@ -251,9 +211,9 @@ if __name__ == '__main__':
 #     print(elapsed)
 #
 #     #gaussian_filter(mean_curv, sigma=1, output=mean_curv)
-#     g3D.display_mesh(verts, faces, normals, mean_curv, os.path.join(output_path, "mean_curvature_cubic_order.png"))
+#     g3D.display_mesh(m.vertices, m.faces, m.vertex_normals, mean_curv, os.path.join(output_path, "mean_curvature_cubic_order.png"))
 # ##########################################################################################################################################
-
+#
 # #########################################################################################################################################
 # ############## To compare results with the iterative fitting method, please uncomment this block ########################################
 #
@@ -267,9 +227,9 @@ if __name__ == '__main__':
 #     print("The iterative fitting method takes (in seconds):\n")
 #     print(elapsed)
 #
-#     g3D.display_mesh(verts, faces, normals, mean_curv, os.path.join(output_path, "mean_curvature_iterative_fitting.png"))
+#     g3D.display_mesh(m.vertices, m.faces, m.vertex_normals, mean_curv, os.path.join(output_path, "mean_curvature_iterative_fitting.png"))
 # ##########################################################################################################################################
-
+#
 # #########################################################################################################################################
 # ############## To compare results with the method of Meyer, please uncomment this block #################################################
 #
@@ -284,5 +244,5 @@ if __name__ == '__main__':
 #     print("The method of Meyer takes (in seconds):\n")
 #     print(elapsed)
 #
-#     g3D.display_mesh(verts, faces, normals, mean_curv, os.path.join(output_path, "mean_curvature_Meyer.png"))
+#     g3D.display_mesh(m.vertices, m.faces, m.vertex_normals, mean_curv, os.path.join(output_path, "mean_curvature_Meyer.png"))
 # ##########################################################################################################################################
