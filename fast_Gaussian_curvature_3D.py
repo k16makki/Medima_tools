@@ -212,7 +212,7 @@ def display_mesh(verts, faces, normals, texture, save_path):
     #mesh.clim = -0.05,0.02
     vv.callLater(1.0, vv.screenshot, save_path, vv.gcf(), sf=2, bg='w')
     vv.colorbar()
-    vv.view({'zoom': 0.0053, 'azimuth': -80.0, 'elevation': 5.0})
+    vv.view({'zoom': 0.006, 'azimuth': 80.0, 'elevation': -5.0})
     #vv.view({'zoom': 0.005, 'azimuth': -80.0, 'elevation': -5.0})
     vv.use().Run()
 
