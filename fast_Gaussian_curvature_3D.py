@@ -120,6 +120,7 @@ def Gaussian_curvature(phi_grad,Ha):
     return gaussian_curv
 
 
+
 def Hessian_adjoint_curvature(phi_grad,Ha):
 
     gx, gy, gz = phi_grad
@@ -175,7 +176,7 @@ def phi_v1(mask):
 def phi(mask):
 
     tmp = np.ones(mask.shape)
-    tmp[np.where(mask!=0)]= -1
+    tmp[mask!=0]= -1
 
     return  skfmm.distance(tmp)
 
@@ -218,6 +219,23 @@ def display_mesh(verts, faces, normals, texture, save_path):
 
     return 0
 
+
+###    Affect texture value to each vertex by spline interpolation, for the different modes as explained in: https://docs.scipy.org/doc/scipy/reference/generated/scipy.ndimage.map_coordinates.html
+
+# def texture_spline_interpolation3D(verts, texture):
+#
+#     val = np.zeros(verts[:,0].shape)
+#     map_coordinates(texture,[verts[:,0],verts[:,1],verts[:,2]],output=val,order=2, mode='nearest')
+#
+#     return val
+
+def texture_spline_interpolation3D(verts, texture):
+
+    #val = map_coordinates(texture,[verts[:,0],verts[:,1],verts[:,2]],order=2, mode='nearest')
+
+    return map_coordinates(texture,[verts[:,0],verts[:,1],verts[:,2]],order=2, mode='nearest')
+
+
 #### Affect texture value to each vertex by averaging neighbrhood information
 def texture_mean_avg_interpolation3D(verts, texture):
 
@@ -232,14 +250,7 @@ def texture_nearest_neigh_interpolation3D(verts, texture):
 
     return texture[np.rint(verts[:,0]).astype(int),np.rint(verts[:,1]).astype(int),np.rint(verts[:,2]).astype(int)]
 
-###    Affect texture value to each vertex by spline interpolation, for the different modes as explained in: https://docs.scipy.org/doc/scipy/reference/generated/scipy.ndimage.map_coordinates.html
 
-def texture_spline_interpolation3D(verts, texture):
-
-    val = np.zeros(verts[:,0].shape)
-    map_coordinates(texture,[verts[:,0],verts[:,1],verts[:,2]],output=val,order=2, mode='nearest')
-
-    return val
 
 
 

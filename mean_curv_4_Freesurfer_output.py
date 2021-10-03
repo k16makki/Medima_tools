@@ -27,32 +27,6 @@ import DiffGeoOps as diffgeo
 
 
 
-def hessian_trace(hessian):
-
-    return hessian[0,0,...] + hessian[1,1,...] + hessian[2,2,...]
-
-
-def divergence_formula(phi):
-
-    g_x,g_y,g_z = np.gradient(phi)
-    #smoothing of gradient vector field
-    gaussian_filter(g_x, sigma=1, output=g_x)
-    gaussian_filter(g_y, sigma=1, output=g_y)
-    gaussian_filter(g_z, sigma=1, output=g_z)
-    norm_grad =  np.sqrt(np.power(g_x,2)+np.power(g_y,2)+np.power(g_z,2))
-    norm_grad[np.where(norm_grad==0)]=1
-    np.divide(g_x,norm_grad,g_x)
-    np.divide(g_y,norm_grad,g_y)
-    np.divide(g_z,norm_grad,g_z)
-    g_xx, g_yx , g_zx = np.gradient(g_x)
-    g_xy, g_yy , g_zy = np.gradient(g_y)
-    g_xz, g_yz , g_zz = np.gradient(g_z)
-    gaussian_filter(g_xx, sigma=1, output=g_xx)
-    gaussian_filter(g_yy, sigma=1, output=g_yy)
-    gaussian_filter(g_zz, sigma=1, output=g_zz)
-
-    return  0.5*(g_xx + g_yy + g_zz)
-
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
@@ -99,7 +73,7 @@ if __name__ == '__main__':
 
     ########## Compute mean curvature ###################
 
-    #mean_curvature = divergence_formula(phi)   ### uncomment this line (and comment the two following) if you would like to use the divergence formula
+    #mean_curvature = m3D.divergence_formula(phi)   ### uncomment this line (and comment the two following) if you would like to use the divergence formula
 
     phi_grad, hessian = g3D.hessian(phi)
     mean_curvature = m3D.mean_curvature(phi_grad,hessian)

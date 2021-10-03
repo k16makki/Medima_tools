@@ -17,6 +17,7 @@ from skimage import measure
 import timeit
 import fast_Gaussian_curvature_3D as g3D
 
+
 ## Import tools for computing curvature on explicit surfaces (for comparison purposes)
 import slam_curvature as scurv
 import CurvatureCubic as ccurv
@@ -30,6 +31,7 @@ import DiffGeoOps as diffgeo
 def hessian_trace(hessian):
 
     return hessian[0,0,...] + hessian[1,1,...] + hessian[2,2,...]
+
 
 
 def mean_curvature(phi_grad,hessian):
@@ -50,9 +52,9 @@ def divergence_formula(phi):
 
     g_x,g_y,g_z = np.gradient(phi)
     #smoothing of gradient vector field
-    gaussian_filter(g_x, sigma=2, output=g_x)
-    gaussian_filter(g_y, sigma=2, output=g_y)
-    gaussian_filter(g_z, sigma=2, output=g_z)
+    #gaussian_filter(g_x, sigma=2, output=g_x)
+    #gaussian_filter(g_y, sigma=2, output=g_y)
+    #gaussian_filter(g_z, sigma=2, output=g_z)
     norm_grad =  np.sqrt(np.power(g_x,2)+np.power(g_y,2)+np.power(g_z,2))
     norm_grad[np.where(norm_grad==0)]=1
     np.divide(g_x,norm_grad,g_x)
