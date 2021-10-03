@@ -17,8 +17,6 @@ from skimage import measure
 
 import fast_Gaussian_curvature_3D as g3D
 
-### To do : interpolation + recuperation of coordinates in the original image
-
 
 #### Compute the Hessian determinant using the rule of Sarrus
 
@@ -41,7 +39,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
 
-    ## Example of use: time python3 Weingarten_map.py -in /home/karim/Bureau/Courbure/data/cortex.nii.gz -o /home/karim/Bureau/Courbure/test/eigen_results
+    ## Example of use: time python3 Weingarten_map.py -in /home/karim/Bureau/Courbure/data/stanford_bunny_binary.nii.gz -o /home/karim/Bureau/Courbure/test/eigen_results
 
 
     output_path = args.output
@@ -52,41 +50,38 @@ if __name__ == '__main__':
 
     shape = nib.load(args.mask).get_data()
 
-    shape = g3D.bbox_3D(shape,7)
+    shape, dx, dy, dz = g3D.bbox_3D(shape,7)
     phi = g3D.phi(shape) ## signed geodesic distance
 
     gaussian_filter(phi, sigma=2, output=phi) ## the smoothing kernel should be the same everywhere
 
     verts, faces, normals, values = measure.marching_cubes_lewiner(phi, 0.0)#, spacing=(dx,dy,dz), gradient_direction='descent')
 
-    m = trimesh.Trimesh(vertices=verts, faces=faces)
-
-    m.export(os.path.join(output_path, "surface_mesh.obj"))
-
 
     Hessian = g3D.hessian(phi)[1]
 
 
     Hessian_determinant = hessian_determinant(Hessian)
-    det = Hessian_determinant[np.rint(verts[:,0]).astype(int),np.rint(verts[:,1]).astype(int),np.rint(verts[:,2]).astype(int)]
-    gx,gy,gz = g3D.hessian(phi)[0]
-    grad_norm = g3D.L2_norm_grad(gx,gy,gz)
-    gauss_curv = np.divide(det,grad_norm[np.rint(verts[:,0]).astype(int),np.rint(verts[:,1]).astype(int),np.rint(verts[:,2]).astype(int)]**2)
+    det = g3D.texture_spline_interpolation3D(verts, Hessian_determinant)
 
     ### Compute sorted eigenvalues of the Hessian matrix ###############
 
     Hessian = np.einsum('lmijk->ijklm', Hessian)
     eigenValues, eigenVectors = np.linalg.eig(Hessian)
-    #eigenValues = np.sort(eigenValues)
+    eigenValues = np.sort(eigenValues)
 
     ####################################################################
 
     #lamda1 = g3D.texture_nearest_neigh_interpolation3D(verts, eig_vals_sorted[...,0])
-    lamda1 = g3D.texture_mean_avg_interpolation3D(verts, eigenValues[...,0])
-    lamda2 = g3D.texture_mean_avg_interpolation3D(verts, eigenValues[...,1])
-    lamda3 = g3D.texture_mean_avg_interpolation3D(verts, eigenValues[...,2])
+    lamda1 = g3D.texture_spline_interpolation3D(verts, eigenValues[...,0])
+    lamda2 = g3D.texture_spline_interpolation3D(verts, eigenValues[...,1])
+    lamda3 = g3D.texture_spline_interpolation3D(verts, eigenValues[...,2])
 
+    verts = g3D.align_origin(verts,dx,dy,dz) ### re-align origin
 
+    m = trimesh.Trimesh(vertices=verts, faces=faces)
+
+    m.export(os.path.join(output_path, "surface_mesh.obj"))
     #
 
     g3D.display_mesh(verts, faces, normals, lamda1, os.path.join(output_path, "lambda1.png"))
@@ -97,7 +92,3 @@ if __name__ == '__main__':
     g3D.display_mesh(verts, faces, normals, lamda1+lamda2+lamda3, os.path.join(output_path, "Laplacian.png"))
     g3D.display_mesh(verts, faces, normals, det, os.path.join(output_path, "Hessian_determinant_Sarrus.png"))
     #g3D.display_mesh(verts, faces, normals, lamda1*lamda3, os.path.join(output_path, "gaussian_curvature1.png"))
-
-    #error = np.sqrt(np.absolute(det**2 - (lamda1*lamda2*lamda3)**2 ))
-
-    #print(np.min(error),np.max(error),np.mean(error))
