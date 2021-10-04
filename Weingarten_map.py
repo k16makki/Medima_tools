@@ -67,7 +67,9 @@ if __name__ == '__main__':
     ### Compute sorted eigenvalues of the Hessian matrix ###############
 
     Hessian = np.einsum('lmijk->ijklm', Hessian)
-    eigenValues, eigenVectors = np.linalg.eig(Hessian)
+    #eigenValues = np.linalg.eigvals(Hessian) ## To compute only eigenvalues
+
+    eigenValues, eigenVectors = np.linalg.eig(Hessian) # To compute both eigenvalues and eigenvectors
     eigenValues = np.sort(eigenValues)
 
     ####################################################################
@@ -83,12 +85,12 @@ if __name__ == '__main__':
 
     m.export(os.path.join(output_path, "surface_mesh.obj"))
     #
-
-    g3D.display_mesh(verts, faces, normals, lamda1, os.path.join(output_path, "lambda1.png"))
-    g3D.display_mesh(verts, faces, normals, lamda2, os.path.join(output_path, "lambda2.png"))
-    g3D.display_mesh(verts, faces, normals, lamda3, os.path.join(output_path, "lambda3.png"))
-
-    g3D.display_mesh(verts, faces, normals, (lamda1+lamda2+lamda3)/2, os.path.join(output_path, "mean_curvature1.png"))
-    g3D.display_mesh(verts, faces, normals, lamda1+lamda2+lamda3, os.path.join(output_path, "Laplacian.png"))
-    g3D.display_mesh(verts, faces, normals, det, os.path.join(output_path, "Hessian_determinant_Sarrus.png"))
-    #g3D.display_mesh(verts, faces, normals, lamda1*lamda3, os.path.join(output_path, "gaussian_curvature1.png"))
+    #
+    # g3D.display_mesh(verts, faces, normals, lamda1, os.path.join(output_path, "lambda1.png"))
+    # g3D.display_mesh(verts, faces, normals, lamda2, os.path.join(output_path, "lambda2.png"))
+    # g3D.display_mesh(verts, faces, normals, lamda3, os.path.join(output_path, "lambda3.png"))
+    #
+    # g3D.display_mesh(verts, faces, normals, (lamda1+lamda2+lamda3)/2, os.path.join(output_path, "mean_curvature1.png"))
+    # g3D.display_mesh(verts, faces, normals, lamda1+lamda2+lamda3, os.path.join(output_path, "Laplacian.png"))
+    # g3D.display_mesh(verts, faces, normals, det, os.path.join(output_path, "Hessian_determinant_Sarrus.png"))
+    # #g3D.display_mesh(verts, faces, normals, lamda1*lamda3, os.path.join(output_path, "gaussian_curvature1.png"))
