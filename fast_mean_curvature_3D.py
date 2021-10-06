@@ -38,11 +38,15 @@ def mean_curvature(phi_grad,hessian):
 
     gx, gy, gz = phi_grad
 
+    norm = g3D.L2_norm_grad(gx,gy,gz)
+    gx /= norm
+    gy /= norm
+    gz /= norm
+
     mean_curv =  (gx * (gx*hessian[0,0,...]+gy*hessian[1,0,...]+gz*hessian[2,0,...]) + gy * (gx*hessian[0,1,...]+gy*hessian[1,1,...]+gz*hessian[2,1,...])\
     + gz * (gx*hessian[0,2,...]+gy*hessian[1,2,...]+gz*hessian[2,2,...])) - (g3D.L2_norm_grad(gx,gy,gz)**2 *  hessian_trace(hessian))
 
     np.divide(mean_curv,-2*g3D.L2_norm_grad(gx,gy,gz)**3,mean_curv)
-    #gaussian_filter(mean_curv, sigma=1, output=mean_curv)
 
     return mean_curv
 

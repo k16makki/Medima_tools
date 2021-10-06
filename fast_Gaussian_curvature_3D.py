@@ -110,6 +110,10 @@ def L_infinity_norm_grad(gx,gy,gz):
 def Gaussian_curvature(phi_grad,Ha):
 
     gx, gy, gz = phi_grad
+    norm = L2_norm_grad(gx,gy,gz)
+    gx /= norm
+    gy /= norm
+    gz /= norm
 
     gaussian_curv =  gx * (gx*Ha[0,0,...]+gy*Ha[1,0,...]+gz*Ha[2,0,...]) + gy * (gx*Ha[0,1,...]+gy*Ha[1,1,...]+gz*Ha[2,1,...])\
     + gz * (gx*Ha[0,2,...]+gy*Ha[1,2,...]+gz*Ha[2,2,...])
@@ -128,7 +132,7 @@ def Hessian_adjoint_curvature(phi_grad,Ha):
     curvature =  gx * (gx*Ha[0,0,...]+gy*Ha[1,0,...]+gz*Ha[2,0,...]) + gy * (gx*Ha[0,1,...]+gy*Ha[1,1,...]+gz*Ha[2,1,...])\
     + gz * (gx*Ha[0,2,...]+gy*Ha[1,2,...]+gz*Ha[2,2,...])
     np.divide(curvature,L2_norm_grad(gx,gy,gz)**3,curvature)
-    #gaussian_filter(curvature, sigma=1, output=curvature)
+
 
     return curvature
 
@@ -222,18 +226,9 @@ def display_mesh(verts, faces, normals, texture, save_path):
 
 ###    Affect texture value to each vertex by spline interpolation, for the different modes as explained in: https://docs.scipy.org/doc/scipy/reference/generated/scipy.ndimage.map_coordinates.html
 
-# def texture_spline_interpolation3D(verts, texture):
-#
-#     val = np.zeros(verts[:,0].shape)
-#     map_coordinates(texture,[verts[:,0],verts[:,1],verts[:,2]],output=val,order=2, mode='nearest')
-#
-#     return val
-
 def texture_spline_interpolation3D(verts, texture):
 
-    #val = map_coordinates(texture,[verts[:,0],verts[:,1],verts[:,2]],order=2, mode='nearest')
-
-    return map_coordinates(texture,[verts[:,0],verts[:,1],verts[:,2]],order=2, mode='nearest')
+    return map_coordinates(texture,[verts[:,0],verts[:,1],verts[:,2]],order=3, mode='nearest')
 
 
 #### Affect texture value to each vertex by averaging neighbrhood information

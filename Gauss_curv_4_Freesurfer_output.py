@@ -121,8 +121,8 @@ if __name__ == '__main__':
     ### Affect per-vertex curvature values, by interpolation
 
     #gaussian_curv = g3D.texture_nearest_neigh_interpolation3D(verts, Gaussian_curvature)
-    gaussian_curv = g3D.texture_mean_avg_interpolation3D(verts, Gaussian_curvature)
-    #gaussian_curv = g3D.texture_spline_interpolation3D(verts, Gaussian_curvature)
+    #gaussian_curv = g3D.texture_mean_avg_interpolation3D(verts, Gaussian_curvature)
+    gaussian_curv = g3D.texture_spline_interpolation3D(verts, Gaussian_curvature)
 
     verts = g3D.align_origin_back(verts,dx,dy,dz) ### Re-align origin "back" with the origin of the original image
 
