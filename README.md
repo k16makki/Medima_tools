@@ -17,14 +17,15 @@ Required softwares are available ready to run for Linux (Ubuntu) - with Windows 
 
 To compute all curvatures "simultaneously" (scalar, Gaussian, mean, and principal curvatures), please use one of the following commands:  
 
-* `curvatures_narrowband.py`: To estimate curvatures directly from binary segmentations
+* `curvatures_narrowband.py`: to estimate curvatures directly from binary segmentations,
 
 ```
 $ python3 curvatures_narrowband.py -in ./3D_data/mask.nii.gz -o ./output_folder
 
 ```
+or,
 
-* `curvatures_narrowband_4_Freesurfer_output.py`: To estimate curvatures for Freesurfer output mesh
+* `curvatures_narrowband_4_Freesurfer_output.py`: to estimate curvatures for Freesurfer output mesh,
 
 ```
 $ python3 curvatures_narrowband_4_Freesurfer_output.py -in ../../rh_white.nii.gz -m ../../rh.white.gii -o ./output_folder_Freesurfer
