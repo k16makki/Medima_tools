@@ -185,6 +185,16 @@ def phi(mask):
     return  skfmm.distance(tmp)
 
 
+def phi_narrow(mask, band=3):
+
+    tmp = np.ones(mask.shape)
+    tmp[mask!=0]= -1
+    sgd = np.array(skfmm.distance(tmp, narrow=band), float)
+    sgd[sgd==0] = band + 1
+
+    return  sgd#np.array(skfmm.distance(tmp, narrow=band), float)
+
+
 ## signed Euclidean distance
 def phi_Euclidean(mask):
 
@@ -211,14 +221,15 @@ def display_mesh(verts, faces, normals, texture, save_path):
     f = vv.gca()
     mesh.colormap = vv.CM_JET
     f.axis.visible = False
+
     #f.bgcolor = None #1,1,1 #None
     #mesh.edgeShading = 'smooth'
     #mesh.clim = np.min(texture),np.max(texture)
     #mesh.clim = -0.05,0.02
     vv.callLater(1.0, vv.screenshot, save_path, vv.gcf(), sf=2, bg='w')
     vv.colorbar()
-    vv.view({'zoom': 0.006, 'azimuth': 80.0, 'elevation': -5.0})
-    #vv.view({'zoom': 0.005, 'azimuth': -80.0, 'elevation': -5.0})
+    vv.view({'zoom': 0.005, 'azimuth': 80.0, 'elevation': -5.0})
+    #vv.view({'zoom': 0.006, 'azimuth': -80.0, 'elevation': -5.0})
     vv.use().Run()
 
     return 0
@@ -273,6 +284,7 @@ if __name__ == '__main__':
 
     if (args.dmap == 1):
 
+        #phi = phi_narrow(shape,4) ## distance calculation limited to narrow band (not recommended to extract smooth surface mesh)
         phi = phi(shape) ## signed geodesic distance
 
     elif (args.dmap == 2):
