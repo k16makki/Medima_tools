@@ -30,7 +30,8 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    # Example of use : python3 curvatures_narrowband.py -in ./3D_data/stanford_bunny_binary.nii.gz -o /home/karim/Bureau/Courbure/narrow_band
+    # Example of use : python3 curvatures_narrowband_4_Freesurfer_output.py -in /home/karim/Bureau/Courbure/data/Guillaume_data/rh_white.nii.gz
+    #-m /home/karim/Bureau/Courbure/data/Guillaume_data/rh.white.gii -o /home/karim/Bureau/Courbure/narrow_band_Freesurfer
 
     output_path = args.output
 
@@ -46,7 +47,7 @@ if __name__ == '__main__':
 
     shape, dx, dy, dz = g3D.bbox_3D(shape,7)
 
-    phi, R = cnb.phi_narrow(shape,7) ## distance calculation limited to narrow band (not recommended to extract smooth surface mesh)
+    phi, R = cnb.phi_narrow(shape,7) ## distance calculation limited to narrow band
     phi = cnb.local_gaussian_filter(phi, sigma=2) ## smoothing of the level set signed distance function on a narrow band
 
 #################### Computation of  Gaussian and mean curvatures ###############################

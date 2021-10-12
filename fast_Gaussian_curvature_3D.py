@@ -284,7 +284,7 @@ if __name__ == '__main__':
 
     if (args.dmap == 1):
 
-        #phi = phi_narrow(shape,4) ## distance calculation limited to narrow band (not recommended to extract smooth surface mesh)
+        #phi = phi_narrow(shape,4) ## distance calculation limited to narrow band 
         phi = phi(shape) ## signed geodesic distance
 
     elif (args.dmap == 2):

@@ -17,15 +17,6 @@ import timeit
 import fast_Gaussian_curvature_3D as g3D
 
 
-
-def local_gaussian_filter(scalar_function, sigma=2):
-
-    mask = np.zeros(scalar_function.shape)
-    mask[scalar_function!=0] = 1
-    smooth_scalar_function = gaussian_filter(scalar_function*mask, sigma=sigma)
-
-    return smooth_scalar_function
-
 ### Distance calculation limited to narrow band
 
 def phi_narrow(mask, band=5):
@@ -38,6 +29,13 @@ def phi_narrow(mask, band=5):
 
     return  sgd, R
 
+def local_gaussian_filter(scalar_function, sigma=2):
+
+    mask = np.zeros(scalar_function.shape)
+    mask[scalar_function!=0] = 1
+    smooth_scalar_function = gaussian_filter(scalar_function*mask, sigma=sigma)
+
+    return smooth_scalar_function
 
 def hessian_adjoint_narrowband(hessian,R):
 
