@@ -132,7 +132,7 @@ if __name__ == '__main__':
 
     shape, dx, dy, dz = g3D.bbox_3D(shape,5)
 
-    phi, R = phi_narrow(shape,5) ## distance calculation limited to narrow band (not recommended to extract smooth surface mesh)
+    phi, R = phi_narrow(shape,5) ## distance calculation limited to narrow band
     phi = local_gaussian_filter(phi, sigma=2) ## smoothing of the level set signed distance function on a narrow band
 
 #################### Computation of  Gaussian and mean curvatures ###############################
