@@ -50,7 +50,16 @@ $ python3 curvatures_narrowband_4_Freesurfer_output.py -in ./3D_data/Freesurfer_
 
 ```
 
-# Results for a Freesurfer output mesh:
+To compute sulcal depth maps, please use the following commands:
+
+```
+$ python3 sulcal_depth.py -in ./3D_data/Freesurfer_output/rh_white.nii.gz -o ./set_your_output_directory_name
+
+$ python3 sulcal_depth.py -in ./3D_data/Freesurfer_output/lh_white.nii.gz -o ./set_your_output_directory_name
+
+```
+
+# Results for a Freesurfer output (mesh and/or mask):
 
 * `Ricci scalar (scalar curvature)`:
 ![pipeline image](Ricci_scalar.png)
@@ -66,6 +75,12 @@ $ python3 curvatures_narrowband_4_Freesurfer_output.py -in ./3D_data/Freesurfer_
 
 * `Principal curvature 2`:
 ![pipeline image](Principal_curvature2.png)
+
+* `Sulcal depth map (right hemisphere)`:
+![pipeline image](sulcal_depth_right_hemisphere.png)
+
+* `Sulcal depth map (left hemisphere)`:
+![pipeline image](sulcal_depth_left_hemisphere.png)
 
 This software is governed by the CeCILL-B license under French law and abiding by the rules of distribution of free software. You can use, modify and/ or redistribute the software under the terms of the CeCILL-B license as circulated by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
 
