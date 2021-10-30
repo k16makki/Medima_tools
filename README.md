@@ -70,7 +70,7 @@ $ python3 Weingarten_map_4_Freesurfer_output.py -in ./3D_data/Freesurfer_output/
 # Results for a Freesurfer output (mesh and/or mask):
 
 * `Ricci scalar (scalar curvature)`:
-![pipeline image](Ricci_scalar.png)
+![pipeline image](Ricci_scalar.png =250x)
 
 * `Gaussian curvature`:
 ![pipeline image](Gaussian_curature.png)
